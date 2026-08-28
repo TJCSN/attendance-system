@@ -1,0 +1,1452 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Attendance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+            -webkit-touch-callout: none;
+        }
+ 
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+ 
+        /* Prevent text selection on buttons */
+        button, .btn {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+ 
+        /* Better touch targets */
+        input[type="checkbox"] {
+            cursor: pointer;
+        }
+ 
+        label {
+            cursor: pointer;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-premier {
+            background: #ffd700;
+            color: #856404;
+        }
+        .badge-senior {
+            background: #c0c0c0;
+            color: #383d41;
+        }
+        .badge-master {
+            background: #cd7f32;
+            color: white;
+        }
+        .badge-present {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-absent {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .qr-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        #qrcode {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .filter-section {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        select, input {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        .checkbox-item:hover {
+            background: #f8f9fa;
+        }
+        .checkbox-item:last-child {
+            border-bottom: none;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+        .checkbox-item label {
+            cursor: pointer;
+            flex: 1;
+            margin: 0;
+            font-size: 15px;
+        }
+        .checkbox-item .member-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .checkbox-item .member-details {
+            color: #666;
+            font-size: 13px;
+            margin-left: 8px;
+        }
+ 
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+ 
+            .container {
+                padding: 15px;
+                border-radius: 10px;
+            }
+ 
+            h1 {
+                font-size: 22px;
+            }
+ 
+            h2 {
+                font-size: 18px;
+            }
+ 
+            /* Make header stack vertically */
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+ 
+            /* Stack buttons vertically */
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+ 
+            .btn-group button,
+            .btn-group label {
+                width: 100%;
+                margin: 0 !important;
+            }
+ 
+            /* Larger tap targets for mobile */
+            .btn {
+                padding: 16px 20px;
+                font-size: 16px;
+                min-height: 48px;
+            }
+ 
+            /* Stats cards - 2 columns on mobile */
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+ 
+            .stat-card {
+                padding: 15px;
+            }
+ 
+            .stat-number {
+                font-size: 28px;
+            }
+ 
+            /* Date picker area - stack on mobile */
+            #dateSelectorBox {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                padding: 12px !important;
+            }
+ 
+            #dateSelectorBox label {
+                font-size: 16px !important;
+                margin-bottom: 8px;
+            }
+ 
+            #dateSelectorBox > div {
+                width: 100% !important;
+                flex-direction: row !important;
+            }
+ 
+            #trainingDate {
+                width: 100% !important;
+                font-size: 16px !important; /* Prevent iOS zoom */
+                padding: 14px 12px !important;
+                min-height: 48px;
+            }
+ 
+            #dateSelectorBox button {
+                padding: 14px 20px !important;
+                font-size: 15px !important;
+                min-height: 48px;
+                min-width: 80px;
+            }
+ 
+            #dateNote {
+                font-size: 14px !important;
+                margin-top: 8px;
+                text-align: center;
+            }
+ 
+            /* Checkbox items - larger tap targets */
+            .checkbox-item {
+                padding: 16px 12px;
+                min-height: 56px;
+            }
+ 
+            .checkbox-item input[type="checkbox"] {
+                width: 24px;
+                height: 24px;
+                margin-right: 15px;
+                min-width: 24px;
+                flex-shrink: 0;
+            }
+ 
+            .checkbox-item label {
+                font-size: 16px;
+                line-height: 1.4;
+            }
+ 
+            .checkbox-item .member-name {
+                display: block;
+                margin-bottom: 4px;
+            }
+ 
+            .checkbox-item .member-details {
+                display: block;
+                font-size: 14px;
+            }
+ 
+            /* Roll call header on mobile */
+            #rollCallHeader {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+ 
+            #rollCallHeader h2 {
+                text-align: center;
+                margin-bottom: 10px !important;
+            }
+ 
+            #rollCallHeader .btn-group {
+                width: 100%;
+                flex-direction: row !important;
+            }
+ 
+            #rollCallHeader .btn-group button {
+                flex: 1;
+                min-width: 0;
+            }
+ 
+            /* Roll call box */
+            #attendanceCheckboxList {
+                max-height: 60vh;
+                padding: 10px;
+            }
+ 
+            /* Filters - stack on mobile */
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+ 
+            .filter-section label {
+                margin-bottom: 5px;
+            }
+ 
+            .filter-section select,
+            .filter-section input {
+                width: 100%;
+                font-size: 16px; /* Prevent iOS zoom */
+                padding: 12px;
+            }
+ 
+            /* Table - hide on mobile, show cards instead */
+            #tableContainer {
+                overflow-x: auto;
+            }
+ 
+            table {
+                font-size: 14px;
+            }
+ 
+            th, td {
+                padding: 10px 8px;
+                font-size: 13px;
+            }
+ 
+            /* Make badge text smaller */
+            .badge {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+ 
+            /* Excel status box */
+            #excelStatus {
+                padding: 12px;
+                font-size: 13px;
+            }
+ 
+            /* QR section */
+            .qr-section {
+                padding: 15px;
+            }
+ 
+            /* Info text smaller */
+            p, .date, .footer {
+                font-size: 13px;
+            }
+ 
+            /* Hide table on very small screens - too cramped */
+            .filter-section label {
+                font-size: 14px;
+            }
+ 
+            /* Sticky stats on mobile for quick glance */
+            .stats {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background: #f5f5f5;
+                padding: 10px 0;
+                margin: -10px 0 20px 0;
+            }
+        }
+ 
+        /* Extra small phones */
+        @media (max-width: 375px) {
+            h1 {
+                font-size: 20px;
+            }
+ 
+            .stat-number {
+                font-size: 24px;
+            }
+ 
+            .stat-label {
+                font-size: 12px;
+            }
+ 
+            .btn {
+                padding: 14px 16px;
+                font-size: 15px;
+            }
+ 
+            .checkbox-item {
+                padding: 14px 10px;
+            }
+ 
+            .checkbox-item .member-name {
+                font-size: 15px;
+            }
+ 
+            .checkbox-item .member-details {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📊 Attendance Dashboard</h1>
+                <p id="currentDate" style="color: #666; margin-top: 5px;"></p>
+            </div>
+            <div class="btn-group">
+                <label for="excelUpload" class="btn btn-primary" style="margin: 0; cursor: pointer;">📂 Load Excel File</label>
+                <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display: none;">
+                <button class="btn btn-success" onclick="saveToExcel()" id="saveBtn" disabled>💾 Save to Excel</button>
+                <button class="btn btn-primary" onclick="exportSummaryReport()" id="summaryBtn" disabled style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">📊 Export Summary Report</button>
+                <button class="btn btn-primary" onclick="toggleQR()">🔲 Show QR Code</button>
+                <button class="btn btn-danger" onclick="clearData()">🗑️ Clear All Data</button>
+            </div>
+        </div>
+ 
+        <div id="excelStatus" style="background: #d1ecf1; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none;">
+            <strong>📋 Loaded File:</strong> <span id="fileName">None</span><br>
+            <strong>📊 Total Races:</strong> <span id="raceCount">0</span> |
+            <strong>👥 Total Members:</strong> <span id="memberCount">0</span>
+        </div>
+ 
+        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px; margin-bottom: 30px;">
+            <div id="rollCallHeader" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h2 style="margin: 0; color: #856404; flex: 1; min-width: 200px;">📝 Mark Attendance (Roll Call)</h2>
+                <div class="btn-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="selectAll()" style="padding: 8px 16px; font-size: 13px; min-height: 44px;">✅ Select All</button>
+                    <button class="btn btn-danger" onclick="deselectAll()" style="padding: 8px 16px; font-size: 13px; min-height: 44px;">❌ Clear All</button>
+                </div>
+            </div>
+ 
+            <div id="dateSelectorBox" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding: 15px; background: white; border-radius: 8px; border: 2px solid #ffc107; flex-wrap: wrap;">
+                <label style="font-weight: 600; color: #856404; font-size: 15px; margin: 0; flex-shrink: 0;">📅 Training Date:</label>
+                <div style="display: flex; gap: 10px; flex: 1; min-width: 200px; align-items: center;">
+                    <input type="date" id="trainingDate" onchange="updateTrainingDateDisplay()" style="padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 600; color: #333; flex: 1;">
+                    <button onclick="setToday()" style="padding: 10px 16px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; white-space: nowrap; min-height: 44px;">Today</button>
+                </div>
+                <span id="dateNote" style="color: #666; font-size: 13px; font-style: italic; width: 100%;">(Attendance will be saved for this date)</span>
+            </div>
+ 
+            <p style="color: #856404; margin-bottom: 15px; font-size: 14px;">✓ Check the boxes for members who are present on the selected training date</p>
+ 
+            <div id="attendanceCheckboxList" style="max-height: 400px; overflow-y: auto; background: white; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                <!-- Checkboxes will be populated here -->
+            </div>
+        </div>
+ 
+        <div class="qr-section" id="qrSection" style="display: none;">
+            <h3 style="margin-bottom: 10px;">Scan to Check In</h3>
+            <div id="qrcode"></div>
+            <p style="color: #666; font-size: 14px;">Print this QR code or display on a tablet at the venue</p>
+        </div>
+ 
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalPresent">0</div>
+                <div class="stat-label">Present</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-number" id="totalAbsent">0</div>
+                <div class="stat-label">Absent</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-number" id="totalRegistered">15</div>
+                <div class="stat-label">Total Registered</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="stat-number" id="attendanceRate">0%</div>
+                <div class="stat-label">Attendance Rate</div>
+            </div>
+        </div>
+ 
+        <div class="filter-section">
+            <label style="font-weight: 600;">Filter by Category:</label>
+            <select id="categoryFilter" onchange="filterTable()">
+                <option value="all">All Categories</option>
+                <option value="A">Category A</option>
+                <option value="B">Category B</option>
+                <option value="C">Category C</option>
+                <option value="P">Category P</option>
+                <option value="Premier">Premier</option>
+                <option value="Senior">Senior</option>
+                <option value="Master">Master</option>
+            </select>
+ 
+            <label style="font-weight: 600;">Filter by Status:</label>
+            <select id="statusFilter" onchange="filterTable()">
+                <option value="all">All Status</option>
+                <option value="present">Present</option>
+                <option value="absent">Absent</option>
+            </select>
+ 
+            <input type="text" id="searchBox" placeholder="Search by name..." oninput="filterTable()" style="flex: 1; min-width: 200px;">
+        </div>
+ 
+        <div id="tableContainer">
+            <table id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Present</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+ 
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">📭</div>
+            <h3>No attendance records yet</h3>
+            <p>Records will appear here once people start checking in</p>
+        </div>
+    </div>
+ 
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        // Excel data storage
+        let workbook = null;
+        let excelFileName = '';
+        let allAttendees = [];
+        let qrCodeGenerated = false;
+        let allRows = [];
+ 
+        // Default attendees (if no Excel loaded)
+        const defaultAttendees = [
+            {name: "John Smith", category: "Premier"},
+            {name: "Mary Lee", category: "Senior"},
+            {name: "David Chen", category: "Master"},
+            {name: "Sarah Tan", category: "Premier"},
+            {name: "Michael Wong", category: "Senior"},
+            {name: "Emily Lim", category: "Master"},
+            {name: "James Kumar", category: "Premier"},
+            {name: "Lisa Zhang", category: "Senior"},
+            {name: "Robert Tan", category: "Master"},
+            {name: "Jessica Ng", category: "Premier"},
+            {name: "Daniel Lee", category: "Senior"},
+            {name: "Michelle Chua", category: "Master"},
+            {name: "Kevin Ong", category: "Premier"},
+            {name: "Rachel Teo", category: "Senior"},
+            {name: "Steven Lim", category: "Master"}
+        ];
+ 
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-SG', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+ 
+            // Initialize training date picker with today's date
+            const today = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+            document.getElementById('trainingDate').value = today;
+            updateTrainingDateDisplay();
+ 
+            // Initialize with default attendees
+            allAttendees = defaultAttendees;
+ 
+            // Setup Excel upload handler
+            document.getElementById('excelUpload').addEventListener('change', loadExcelFile);
+ 
+            loadData();
+            // Note: Removed auto-refresh since we're using checkbox system now
+        });
+ 
+        // Load Excel file
+        function loadExcelFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+ 
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    workbook = XLSX.read(data, {type: 'array'});
+                    excelFileName = file.name;
+ 
+                    // Extract all members from all sheets
+                    allAttendees = [];
+                    const uniqueMembers = new Set();
+ 
+                    workbook.SheetNames.forEach(sheetName => {
+                        const sheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1});
+ 
+                        // Find Name and Category columns
+                        let nameCol = -1, categoryCol = -1, paddingCol = -1;
+ 
+                        for (let row of jsonData) {
+                            if (row.some(cell => String(cell).toLowerCase() === 'name')) {
+                                nameCol = row.findIndex(cell => String(cell).toLowerCase() === 'name');
+                                categoryCol = row.findIndex(cell => String(cell).toLowerCase() === 'category');
+                                paddingCol = row.findIndex(cell => String(cell).toLowerCase().includes('paddling'));
+                                break;
+                            }
+                        }
+ 
+                        if (nameCol >= 0 && categoryCol >= 0) {
+                            // Extract members
+                            for (let i = 0; i < jsonData.length; i++) {
+                                const row = jsonData[i];
+                                const name = row[nameCol];
+                                const category = row[categoryCol];
+                                const paddlingSide = paddingCol >= 0 ? row[paddingCol] : '';
+ 
+                                if (name && category && String(name).toLowerCase() !== 'name' && !String(name).toLowerCase().includes('present')) {
+                                    const memberKey = String(name).trim();
+                                    if (!uniqueMembers.has(memberKey)) {
+                                        uniqueMembers.add(memberKey);
+                                        allAttendees.push({
+                                            name: memberKey,
+                                            category: category,
+                                            paddlingSide: paddlingSide
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    });
+ 
+                    // Update UI
+                    document.getElementById('excelStatus').style.display = 'block';
+                    document.getElementById('fileName').textContent = excelFileName;
+                    document.getElementById('raceCount').textContent = workbook.SheetNames.length;
+                    document.getElementById('memberCount').textContent = allAttendees.length;
+                    document.getElementById('saveBtn').disabled = false;
+                    document.getElementById('summaryBtn').disabled = false;
+ 
+                    // Save to localStorage for check-in page
+                    localStorage.setItem('excelWorkbook', JSON.stringify({
+                        workbook: workbook,
+                        fileName: excelFileName,
+                        attendees: allAttendees
+                    }));
+ 
+                    alert(`✅ Excel loaded successfully!\n\n📊 ${workbook.SheetNames.length} races\n👥 ${allAttendees.length} members`);
+                    loadData();
+ 
+                } catch (error) {
+                    alert('❌ Error loading Excel file: ' + error.message);
+                    console.error(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+ 
+        function loadData() {
+            const records = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
+            const tbody = document.getElementById('tableBody');
+ 
+            // Create full list with present/absent status
+            allRows = allAttendees.map(person => {
+                const record = records.find(r => r.name === person.name);
+                return {
+                    name: person.name,
+                    category: person.category,
+                    present: record ? true : false,
+                    record: record
+                };
+            });
+ 
+            // Update stats
+            const totalPresent = getCheckedMembers().length;
+            const totalAbsent = allAttendees.length - totalPresent;
+            const attendanceRate = allAttendees.length > 0 ? ((totalPresent / allAttendees.length) * 100).toFixed(0) : 0;
+ 
+            document.getElementById('totalPresent').textContent = totalPresent;
+            document.getElementById('totalAbsent').textContent = totalAbsent;
+            document.getElementById('attendanceRate').textContent = attendanceRate + '%';
+            document.getElementById('totalRegistered').textContent = allAttendees.length;
+ 
+            // Populate checkbox list
+            populateCheckboxList();
+ 
+            filterTable();
+        }
+ 
+        function populateCheckboxList() {
+            const container = document.getElementById('attendanceCheckboxList');
+            if (!container) return;
+ 
+            container.innerHTML = '';
+ 
+            if (allAttendees.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No members loaded. Load an Excel file or use default list.</p>';
+                return;
+            }
+ 
+            // Sort by name
+            const sortedAttendees = [...allAttendees].sort((a, b) => a.name.localeCompare(b.name));
+ 
+            sortedAttendees.forEach((person, index) => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+ 
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `member-${index}`;
+                checkbox.value = person.name;
+                checkbox.onchange = updateStats;
+ 
+                const label = document.createElement('label');
+                label.htmlFor = `member-${index}`;
+ 
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'member-name';
+                nameSpan.textContent = person.name;
+ 
+                const detailsSpan = document.createElement('span');
+                detailsSpan.className = 'member-details';
+                let details = `(${person.category}`;
+                if (person.paddlingSide) {
+                    details += ` - ${person.paddlingSide}`;
+                }
+                details += ')';
+                detailsSpan.textContent = details;
+ 
+                label.appendChild(nameSpan);
+                label.appendChild(detailsSpan);
+ 
+                div.appendChild(checkbox);
+                div.appendChild(label);
+ 
+                container.appendChild(div);
+            });
+        }
+ 
+        function selectAll() {
+            const checkboxes = document.querySelectorAll('#attendanceCheckboxList input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = true);
+            updateStats();
+        }
+ 
+        function deselectAll() {
+            const checkboxes = document.querySelectorAll('#attendanceCheckboxList input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateStats();
+        }
+ 
+        function getCheckedMembers() {
+            const checkboxes = document.querySelectorAll('#attendanceCheckboxList input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+ 
+        function updateStats() {
+            const totalPresent = getCheckedMembers().length;
+            const totalAbsent = allAttendees.length - totalPresent;
+            const attendanceRate = allAttendees.length > 0 ? ((totalPresent / allAttendees.length) * 100).toFixed(0) : 0;
+ 
+            document.getElementById('totalPresent').textContent = totalPresent;
+            document.getElementById('totalAbsent').textContent = totalAbsent;
+            document.getElementById('attendanceRate').textContent = attendanceRate + '%';
+ 
+            // Update table to reflect checkbox changes
+            filterTable();
+        }
+ 
+        function setToday() {
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            document.getElementById('trainingDate').value = today;
+            updateTrainingDateDisplay();
+        }
+ 
+        function updateTrainingDateDisplay() {
+            const dateInput = document.getElementById('trainingDate').value;
+            const dateNote = document.getElementById('dateNote');
+ 
+            if (!dateInput) {
+                dateNote.textContent = '(Please select a training date)';
+                dateNote.style.color = '#dc3545';
+                return;
+            }
+ 
+            const selectedDate = new Date(dateInput);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
+ 
+            const displayDate = selectedDate.toLocaleDateString('en-SG', {
+                weekday: 'short',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+ 
+            if (selectedDate.getTime() === today.getTime()) {
+                dateNote.textContent = `(Today's training - ${displayDate})`;
+                dateNote.style.color = '#28a745';
+            } else if (selectedDate < today) {
+                const daysAgo = Math.floor((today - selectedDate) / (1000 * 60 * 60 * 24));
+                dateNote.textContent = `(Past training - ${displayDate}, ${daysAgo} day${daysAgo > 1 ? 's' : ''} ago)`;
+                dateNote.style.color = '#ff6b6b';
+            } else {
+                dateNote.textContent = `(Future training - ${displayDate})`;
+                dateNote.style.color = '#667eea';
+            }
+        }
+ 
+        function filterTable() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+ 
+            // Get checked members
+            const checkedMembers = getCheckedMembers();
+ 
+            // Update allRows with checkbox status
+            allRows = allAttendees.map(person => {
+                const isPresent = checkedMembers.includes(person.name);
+                return {
+                    name: person.name,
+                    category: person.category,
+                    present: isPresent,
+                    paddlingSide: person.paddlingSide
+                };
+            });
+ 
+            let filtered = allRows.filter(row => {
+                const matchCategory = categoryFilter === 'all' || row.category === categoryFilter;
+                const matchStatus = statusFilter === 'all' ||
+                                  (statusFilter === 'present' && row.present) ||
+                                  (statusFilter === 'absent' && !row.present);
+                const matchSearch = row.name.toLowerCase().includes(searchTerm);
+                return matchCategory && matchStatus && matchSearch;
+            });
+ 
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+ 
+            if (filtered.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('tableContainer').style.display = 'none';
+            } else {
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('tableContainer').style.display = 'block';
+ 
+                filtered.forEach(row => {
+                    const tr = document.createElement('tr');
+ 
+                    let remarks = '';
+                    if (row.present) {
+                        const now = new Date();
+                        const time = now.toLocaleString('en-SG', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        remarks = `Marked present (Admin Roll Call)`;
+                    } else {
+                        remarks = '-';
+                    }
+ 
+                    // Determine badge color
+                    let categoryBadge = 'badge-premier';
+                    const cat = String(row.category).toUpperCase();
+                    if (cat === 'A' || cat === 'PREMIER') categoryBadge = 'badge-premier';
+                    else if (cat === 'B' || cat === 'SENIOR') categoryBadge = 'badge-senior';
+                    else if (cat === 'C' || cat === 'P' || cat === 'MASTER') categoryBadge = 'badge-master';
+ 
+                    tr.innerHTML = `
+                        <td><strong>${row.name}</strong></td>
+                        <td><span class="badge ${categoryBadge}">${row.category}</span></td>
+                        <td><span class="badge badge-${row.present ? 'present' : 'absent'}">${row.present ? '✅ Present' : '❌ Absent'}</span></td>
+                        <td>${remarks}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+ 
+        function toggleQR() {
+            const qrSection = document.getElementById('qrSection');
+            if (qrSection.style.display === 'none') {
+                qrSection.style.display = 'block';
+                if (!qrCodeGenerated) {
+                    const url = window.location.href.replace('admin.html', 'index.html');
+                    new QRCode(document.getElementById('qrcode'), {
+                        text: url,
+                        width: 256,
+                        height: 256
+                    });
+                    qrCodeGenerated = true;
+                }
+            } else {
+                qrSection.style.display = 'none';
+            }
+        }
+ 
+        function exportToExcel() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+ 
+            // Prepare data for Excel
+            const data = allRows.map(row => {
+                let present = '';
+                let remarks = '';
+ 
+                if (row.present) {
+                    const time = new Date(row.record.timestamp).toLocaleString('en-SG');
+                    present = `✅ ${time}`;
+                    remarks = `GPS verified (${row.record.gpsLat.toFixed(4)}, ${row.record.gpsLng.toFixed(4)})`;
+                } else {
+                    present = '❌ Not present';
+                    remarks = '';
+                }
+ 
+                return {
+                    'Name': row.name,
+                    'Category': row.category,
+                    'Present': present,
+                    'Remarks': remarks
+                };
+            });
+ 
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(data);
+ 
+            // Set column widths
+            ws['!cols'] = [
+                {wch: 20}, // Name
+                {wch: 12}, // Category
+                {wch: 25}, // Present
+                {wch: 40}  // Remarks
+            ];
+ 
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+ 
+            // Save file
+            XLSX.writeFile(wb, `${dateStr}_attendance.xlsx`);
+        }
+ 
+        // Save attendance to loaded Excel file
+        function saveToExcel() {
+            if (!workbook) {
+                alert('❌ Please load an Excel file first!');
+                return;
+            }
+ 
+            // Get checked members from checkbox list
+            const checkedMembers = getCheckedMembers();
+ 
+            if (checkedMembers.length === 0) {
+                alert('⚠️ No members marked as present! Please check the boxes for members who attended.');
+                return;
+            }
+ 
+            // Get selected training date
+            const trainingDateInput = document.getElementById('trainingDate').value;
+            if (!trainingDateInput) {
+                alert('⚠️ Please select a training date!');
+                return;
+            }
+ 
+            try {
+                // Convert selected date to our Excel format (DD-Mon-YY)
+                const selectedDate = new Date(trainingDateInput);
+                const todayDate = selectedDate.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: '2-digit'}).replace(/ /g, '-'); // Format: 28-Aug-26
+ 
+                // Use checked members
+                const attendedNames = new Set(checkedMembers);
+ 
+                // Process each sheet
+                workbook.SheetNames.forEach(sheetName => {
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ''});
+ 
+                    // Find column indices
+                    let nameColIdx = -1;
+                    let headerRowIdx = -1;
+                    let lastDataCol = -1;
+ 
+                    for (let i = 0; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        nameColIdx = row.findIndex(cell => String(cell).toLowerCase() === 'name');
+                        if (nameColIdx >= 0) {
+                            headerRowIdx = i;
+                            lastDataCol = row.length - 1;
+                            break;
+                        }
+                    }
+ 
+                    if (nameColIdx < 0 || headerRowIdx < 0) return;
+ 
+                    // Find or create TRAINING ATTENDANCE section
+                    let trainingStartCol = -1;
+                    const headerRow = jsonData[headerRowIdx];
+ 
+                    // Look for existing TRAINING ATTENDANCE header
+                    for (let col = 0; col < headerRow.length; col++) {
+                        if (String(headerRow[col]).includes('TRAINING ATTENDANCE')) {
+                            trainingStartCol = col;
+                            break;
+                        }
+                    }
+ 
+                    // If not found, add it
+                    if (trainingStartCol < 0) {
+                        trainingStartCol = lastDataCol + 2; // +1 for blank column, +1 for header
+                        jsonData[headerRowIdx - 1] = jsonData[headerRowIdx - 1] || [];
+                        jsonData[headerRowIdx - 1][trainingStartCol] = 'TRAINING ATTENDANCE';
+                    }
+ 
+                    // Find or add date column
+                    let dateColIdx = -1;
+                    const dateHeaderRow = jsonData[headerRowIdx];
+ 
+                    for (let col = trainingStartCol; col < dateHeaderRow.length; col++) {
+                        if (String(dateHeaderRow[col]) === todayDate) {
+                            dateColIdx = col;
+                            break;
+                        }
+                    }
+ 
+                    if (dateColIdx < 0) {
+                        // Add new date column
+                        dateColIdx = dateHeaderRow.length;
+                        jsonData[headerRowIdx][dateColIdx] = todayDate;
+                    }
+ 
+                    // Update attendance for each member
+                    let presentCount = 0;
+                    for (let i = headerRowIdx + 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        const memberName = row[nameColIdx];
+ 
+                        if (!memberName || String(memberName).toLowerCase().includes('present')) continue;
+ 
+                        // Check if this member attended
+                        if (attendedNames.has(String(memberName).trim())) {
+                            row[dateColIdx] = '✅';
+                            presentCount++;
+                        } else {
+                            row[dateColIdx] = row[dateColIdx] || '❌';
+                        }
+                    }
+ 
+                    // Find or add PRESENT row
+                    let presentRowIdx = -1;
+                    for (let i = headerRowIdx + 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        if (String(row[nameColIdx]).toLowerCase().includes('present')) {
+                            presentRowIdx = i;
+                            break;
+                        }
+                    }
+ 
+                    if (presentRowIdx < 0) {
+                        // Add PRESENT row at the end
+                        presentRowIdx = jsonData.length;
+                        jsonData[presentRowIdx] = [];
+                        jsonData[presentRowIdx][nameColIdx] = 'PRESENT';
+                    }
+ 
+                    // Update PRESENT count for this date
+                    jsonData[presentRowIdx][dateColIdx] = presentCount;
+ 
+                    // Convert back to sheet
+                    const newSheet = XLSX.utils.aoa_to_sheet(jsonData);
+ 
+                    // Preserve column widths if they exist
+                    if (sheet['!cols']) {
+                        newSheet['!cols'] = sheet['!cols'];
+                    }
+ 
+                    // Preserve merges if they exist
+                    if (sheet['!merges']) {
+                        newSheet['!merges'] = sheet['!merges'];
+                    }
+ 
+                    workbook.Sheets[sheetName] = newSheet;
+                });
+ 
+                // Save the file
+                const outputFileName = excelFileName.replace('.xlsx', `_updated_${todayDate}.xlsx`);
+                XLSX.writeFile(workbook, outputFileName);
+ 
+                // Format date nicely for display
+                const displayDate = selectedDate.toLocaleDateString('en-SG', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+ 
+                alert(`✅ Attendance saved successfully!\n\nTraining Date: ${displayDate}\nFile: ${outputFileName}\n📊 ${checkedMembers.length} members marked as present across all race tabs`);
+ 
+            } catch (error) {
+                alert('❌ Error saving to Excel: ' + error.message);
+                console.error(error);
+            }
+        }
+ 
+        // Export Attendance Summary Report
+        function exportSummaryReport() {
+            if (!workbook) {
+                alert('❌ Please load an Excel file first to generate summary report!');
+                return;
+            }
+ 
+            try {
+                // Extract all training attendance data from all sheets
+                const memberAttendance = new Map(); // name -> { sessions: [], races: [] }
+                const trainingDates = new Set();
+                const raceStats = new Map(); // raceName -> { totalMembers, attendanceByDate }
+ 
+                workbook.SheetNames.forEach(raceName => {
+                    const sheet = workbook.Sheets[raceName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ''});
+ 
+                    // Find column indices
+                    let nameColIdx = -1;
+                    let categoryColIdx = -1;
+                    let headerRowIdx = -1;
+ 
+                    for (let i = 0; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        nameColIdx = row.findIndex(cell => String(cell).toLowerCase() === 'name');
+                        if (nameColIdx >= 0) {
+                            categoryColIdx = row.findIndex(cell => String(cell).toLowerCase() === 'category');
+                            headerRowIdx = i;
+                            break;
+                        }
+                    }
+ 
+                    if (nameColIdx < 0) return;
+ 
+                    // Find TRAINING ATTENDANCE columns
+                    const headerRow = jsonData[headerRowIdx];
+                    const trainingStartCol = headerRow.findIndex(cell => String(cell).includes('TRAINING ATTENDANCE'));
+ 
+                    if (trainingStartCol < 0) return; // No training data yet
+ 
+                    // Get training date columns
+                    const dateColumns = [];
+                    for (let col = trainingStartCol + 1; col < headerRow.length; col++) {
+                        const cellValue = headerRow[col];
+                        if (cellValue && String(cellValue).match(/\d{2}-[A-Za-z]{3}-\d{2}/)) {
+                            dateColumns.push({ col: col, date: String(cellValue) });
+                            trainingDates.add(String(cellValue));
+                        }
+                    }
+ 
+                    // Initialize race stats
+                    if (!raceStats.has(raceName)) {
+                        raceStats.set(raceName, {
+                            totalMembers: 0,
+                            attendanceByDate: new Map()
+                        });
+                    }
+ 
+                    // Extract member data
+                    let memberCount = 0;
+                    for (let i = headerRowIdx + 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        const memberName = row[nameColIdx];
+                        const category = row[categoryColIdx];
+ 
+                        if (!memberName || String(memberName).toLowerCase().includes('present')) continue;
+ 
+                        memberCount++;
+ 
+                        // Initialize member record
+                        if (!memberAttendance.has(memberName)) {
+                            memberAttendance.set(memberName, {
+                                name: memberName,
+                                category: category,
+                                races: [],
+                                sessions: []
+                            });
+                        }
+ 
+                        const memberRecord = memberAttendance.get(memberName);
+                        if (!memberRecord.races.includes(raceName)) {
+                            memberRecord.races.push(raceName);
+                        }
+ 
+                        // Check attendance for each date
+                        dateColumns.forEach(({col, date}) => {
+                            const attendance = row[col];
+                            if (String(attendance) === '✅') {
+                                memberRecord.sessions.push(date);
+ 
+                                // Update race stats
+                                const raceData = raceStats.get(raceName);
+                                if (!raceData.attendanceByDate.has(date)) {
+                                    raceData.attendanceByDate.set(date, 0);
+                                }
+                                raceData.attendanceByDate.set(date, raceData.attendanceByDate.get(date) + 1);
+                            }
+                        });
+                    }
+ 
+                    raceStats.get(raceName).totalMembers = memberCount;
+                });
+ 
+                // Create summary workbook
+                const summaryWB = XLSX.utils.book_new();
+ 
+                // Sheet 1: Overall Summary
+                const totalMembers = memberAttendance.size;
+                const totalSessions = trainingDates.size;
+                const totalRaces = workbook.SheetNames.length;
+ 
+                const overallData = [
+                    ['ATTENDANCE SUMMARY REPORT'],
+                    ['Generated:', new Date().toLocaleString('en-SG')],
+                    [''],
+                    ['OVERALL STATISTICS'],
+                    ['Total Members:', totalMembers],
+                    ['Total Races:', totalRaces],
+                    ['Training Sessions Held:', totalSessions],
+                    [''],
+                    ['TRAINING DATES:'],
+                    ...Array.from(trainingDates).sort().map(date => [date])
+                ];
+ 
+                const overallSheet = XLSX.utils.aoa_to_sheet(overallData);
+                overallSheet['!cols'] = [{wch: 30}, {wch: 20}];
+                XLSX.utils.book_append_sheet(summaryWB, overallSheet, 'Overall Summary');
+ 
+                // Sheet 2: Member Attendance Statistics
+                const memberData = [
+                    ['Member Name', 'Category', 'Races Registered', 'Sessions Attended', 'Total Sessions', 'Attendance Rate'],
+                ];
+ 
+                Array.from(memberAttendance.values())
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach(member => {
+                        const uniqueSessions = [...new Set(member.sessions)];
+                        const attendanceRate = totalSessions > 0
+                            ? ((uniqueSessions.length / totalSessions) * 100).toFixed(1) + '%'
+                            : '0%';
+ 
+                        memberData.push([
+                            member.name,
+                            member.category,
+                            member.races.join(', '),
+                            uniqueSessions.length,
+                            totalSessions,
+                            attendanceRate
+                        ]);
+                    });
+ 
+                const memberSheet = XLSX.utils.aoa_to_sheet(memberData);
+                memberSheet['!cols'] = [
+                    {wch: 25}, // Name
+                    {wch: 12}, // Category
+                    {wch: 30}, // Races
+                    {wch: 18}, // Sessions Attended
+                    {wch: 15}, // Total Sessions
+                    {wch: 18}  // Rate
+                ];
+                XLSX.utils.book_append_sheet(summaryWB, memberSheet, 'Member Statistics');
+ 
+                // Sheet 3: Per-Race Statistics
+                const raceData = [
+                    ['Race Name', 'Total Members', 'Training Date', 'Attendance Count']
+                ];
+ 
+                raceStats.forEach((stats, raceName) => {
+                    if (stats.attendanceByDate.size === 0) {
+                        raceData.push([raceName, stats.totalMembers, 'No training data', '-']);
+                    } else {
+                        let firstRow = true;
+                        stats.attendanceByDate.forEach((count, date) => {
+                            if (firstRow) {
+                                raceData.push([raceName, stats.totalMembers, date, count]);
+                                firstRow = false;
+                            } else {
+                                raceData.push(['', '', date, count]);
+                            }
+                        });
+                    }
+                });
+ 
+                const raceSheet = XLSX.utils.aoa_to_sheet(raceData);
+                raceSheet['!cols'] = [
+                    {wch: 30}, // Race Name
+                    {wch: 15}, // Total Members
+                    {wch: 15}, // Training Date
+                    {wch: 18}  // Attendance
+                ];
+                XLSX.utils.book_append_sheet(summaryWB, raceSheet, 'Race Statistics');
+ 
+                // Sheet 4: Training Session Details
+                const sessionData = [
+                    ['Training Date', 'Total Attendance', 'Members Present']
+                ];
+ 
+                const dateAttendance = new Map();
+                memberAttendance.forEach(member => {
+                    member.sessions.forEach(date => {
+                        if (!dateAttendance.has(date)) {
+                            dateAttendance.set(date, new Set());
+                        }
+                        dateAttendance.get(date).add(member.name);
+                    });
+                });
+ 
+                Array.from(dateAttendance.entries())
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .forEach(([date, members]) => {
+                        sessionData.push([
+                            date,
+                            members.size,
+                            Array.from(members).sort().join(', ')
+                        ]);
+                    });
+ 
+                const sessionSheet = XLSX.utils.aoa_to_sheet(sessionData);
+                sessionSheet['!cols'] = [
+                    {wch: 15}, // Date
+                    {wch: 18}, // Total
+                    {wch: 80}  // Members
+                ];
+                XLSX.utils.book_append_sheet(summaryWB, sessionSheet, 'Session Details');
+ 
+                // Save the summary report
+                const now = new Date();
+                const dateStr = now.toISOString().split('T')[0];
+                XLSX.writeFile(summaryWB, `Attendance_Summary_Report_${dateStr}.xlsx`);
+ 
+                alert(`✅ Summary Report Generated!\n\n📊 ${totalMembers} members\n📅 ${totalSessions} training sessions\n🏁 ${totalRaces} races\n\nFile: Attendance_Summary_Report_${dateStr}.xlsx`);
+ 
+            } catch (error) {
+                alert('❌ Error generating summary report: ' + error.message);
+                console.error(error);
+            }
+        }
+ 
+        function clearData() {
+            if (confirm('⚠️ Are you sure you want to clear all attendance data? This cannot be undone!')) {
+                localStorage.removeItem('attendanceRecords');
+                loadData();
+                alert('✅ All data has been cleared');
+            }
+        }
+    </script>
+</body>
+</html>
+ 
+
+Micron Confidential
