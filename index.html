@@ -1,0 +1,578 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Check-In</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .date {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+            color: #856404;
+            font-size: 14px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: none;
+        }
+        .info-box.show {
+            display: block;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📍 Attendance Check-In</h1>
+        <div class="date" id="currentDate"></div>
+ 
+        <div class="warning" id="eventSchedule" style="background: #d1ecf1; border-color: #bee5eb; color: #0c5460; display: none;">
+        </div>
+ 
+        <div class="warning">
+            ⚠️ Please only check in for yourself. Fraudulent check-ins may result in consequences.
+        </div>
+ 
+        <form id="attendanceForm">
+            <div class="form-group">
+                <label for="nameSelect">Select Your Name:</label>
+                <select id="nameSelect" required>
+                    <option value="">-- Choose your name --</option>
+                </select>
+            </div>
+ 
+            <div class="info-box" id="infoBox">
+                <div class="info-row">
+                    <span class="info-label">Category:</span>
+                    <span class="info-value" id="categoryValue">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Time:</span>
+                    <span class="info-value" id="timeValue">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">GPS Status:</span>
+                    <span class="info-value" id="gpsValue">Checking...</span>
+                </div>
+            </div>
+ 
+            <div class="loader" id="loader"></div>
+ 
+            <button type="submit" class="btn" id="submitBtn">Check In</button>
+        </form>
+ 
+        <div class="status" id="statusMsg"></div>
+ 
+        <div class="footer">
+            Location: 2 International Business Park, Tower 2<br>
+            Singapore 609930 | GPS verification enabled
+        </div>
+    </div>
+ 
+    <script>
+        // ==================== CONFIGURATION ====================
+ 
+        // GPS Location Settings
+        const TARGET_LAT = 1.3266;  // 2 International Business Park
+        const TARGET_LNG = 103.7476;
+        const RADIUS_METERS = 100;
+ 
+        // Event Date & Time Settings
+        const EVENT_CONFIG = {
+            // Set to true to enable date/time restrictions
+            enableTimeRestriction: true,
+ 
+            // Event Type: 'single' or 'recurring'
+            eventType: 'recurring',
+ 
+            // For 'single' event: specify exact date (YYYY-MM-DD format)
+            eventDate: '2026-08-27',
+ 
+            // For 'recurring' event: specify days of week (0=Sunday, 1=Monday, ..., 6=Saturday)
+            // Example: [0, 6] = Sunday and Saturday
+            recurringDays: [0, 6],  // Every Saturday and Sunday
+ 
+            // Event start time (24-hour format: HH:MM)
+            startTime: '08:30',
+ 
+            // Event end time (24-hour format: HH:MM)
+            endTime: '10:00',
+ 
+            // Grace period in minutes (allow check-in before/after event time)
+            // Example: 15 means check-in opens 15 min before and closes 15 min after
+            gracePeriodMinutes: 15
+        };
+ 
+        // ==================== END CONFIGURATION ====================
+ 
+        // Default attendees
+        let attendees = [
+            {name: "John Smith", category: "Premier"},
+            {name: "Mary Lee", category: "Senior"},
+            {name: "David Chen", category: "Master"},
+            {name: "Sarah Tan", category: "Premier"},
+            {name: "Michael Wong", category: "Senior"},
+            {name: "Emily Lim", category: "Master"},
+            {name: "James Kumar", category: "Premier"},
+            {name: "Lisa Zhang", category: "Senior"},
+            {name: "Robert Tan", category: "Master"},
+            {name: "Jessica Ng", category: "Premier"},
+            {name: "Daniel Lee", category: "Senior"},
+            {name: "Michelle Chua", category: "Master"},
+            {name: "Kevin Ong", category: "Premier"},
+            {name: "Rachel Teo", category: "Senior"},
+            {name: "Steven Lim", category: "Master"}
+        ];
+ 
+        let userLocation = null;
+        let gpsVerified = false;
+ 
+        // Load attendees from Excel if available
+        function loadAttendeesFromExcel() {
+            try {
+                const excelData = localStorage.getItem('excelWorkbook');
+                if (excelData) {
+                    const data = JSON.parse(excelData);
+                    if (data.attendees && data.attendees.length > 0) {
+                        attendees = data.attendees;
+                        console.log(`Loaded ${attendees.length} members from Excel`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading Excel data:', error);
+            }
+        }
+ 
+        // Check if current time is within event window
+        function isEventActive() {
+            if (!EVENT_CONFIG.enableTimeRestriction) {
+                return { active: true, message: '' };
+            }
+ 
+            const now = new Date();
+            const currentDayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+ 
+            // Check event type
+            if (EVENT_CONFIG.eventType === 'single') {
+                // Single event - check exact date
+                const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+                if (currentDate !== EVENT_CONFIG.eventDate) {
+                    const eventDateObj = new Date(EVENT_CONFIG.eventDate);
+                    const formattedDate = eventDateObj.toLocaleDateString('en-SG', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    return {
+                        active: false,
+                        message: `Check-in is only available on ${formattedDate}`
+                    };
+                }
+            } else if (EVENT_CONFIG.eventType === 'recurring') {
+                // Recurring event - check day of week
+                if (!EVENT_CONFIG.recurringDays.includes(currentDayOfWeek)) {
+                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    const allowedDays = EVENT_CONFIG.recurringDays.map(d => dayNames[d]).join(' and ');
+                    return {
+                        active: false,
+                        message: `Check-in is only available on ${allowedDays}`
+                    };
+                }
+            }
+ 
+            // Parse event start and end times
+            const [startHour, startMin] = EVENT_CONFIG.startTime.split(':').map(Number);
+            const [endHour, endMin] = EVENT_CONFIG.endTime.split(':').map(Number);
+ 
+            const startDateTime = new Date(now);
+            startDateTime.setHours(startHour, startMin - EVENT_CONFIG.gracePeriodMinutes, 0, 0);
+ 
+            const endDateTime = new Date(now);
+            endDateTime.setHours(endHour, endMin + EVENT_CONFIG.gracePeriodMinutes, 0, 0);
+ 
+            if (now < startDateTime) {
+                const timeStr = startDateTime.toLocaleTimeString('en-SG', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                return {
+                    active: false,
+                    message: `Check-in opens at ${timeStr}`
+                };
+            }
+ 
+            if (now > endDateTime) {
+                const timeStr = endDateTime.toLocaleTimeString('en-SG', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                return {
+                    active: false,
+                    message: `Check-in closed at ${timeStr}`
+                };
+            }
+ 
+            return { active: true, message: '' };
+        }
+ 
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load attendees from Excel first
+            loadAttendeesFromExcel();
+ 
+            // Display event schedule
+            if (EVENT_CONFIG.enableTimeRestriction) {
+                const scheduleDiv = document.getElementById('eventSchedule');
+                let scheduleText = '📅 Check-in Schedule: ';
+ 
+                if (EVENT_CONFIG.eventType === 'recurring') {
+                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    const allowedDays = EVENT_CONFIG.recurringDays.map(d => dayNames[d]).join(' & ');
+                    scheduleText += `Every ${allowedDays}, ${EVENT_CONFIG.startTime} - ${EVENT_CONFIG.endTime}`;
+                } else {
+                    const eventDateObj = new Date(EVENT_CONFIG.eventDate);
+                    const formattedDate = eventDateObj.toLocaleDateString('en-SG', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+                    scheduleText += `${formattedDate}, ${EVENT_CONFIG.startTime} - ${EVENT_CONFIG.endTime}`;
+                }
+ 
+                scheduleDiv.textContent = scheduleText;
+                scheduleDiv.style.display = 'block';
+            }
+ 
+            // Check if event is active
+            const eventStatus = isEventActive();
+            if (!eventStatus.active) {
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('nameSelect').disabled = true;
+                showStatus(`⏰ ${eventStatus.message}`, 'info');
+            }
+            // Set current date
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-SG', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+ 
+            // Populate dropdown
+            const select = document.getElementById('nameSelect');
+            attendees.sort((a, b) => a.name.localeCompare(b.name)).forEach(person => {
+                const option = document.createElement('option');
+                option.value = JSON.stringify(person);
+                let displayText = `${person.name} (${person.category}`;
+                if (person.paddlingSide) {
+                    displayText += ` - ${person.paddlingSide}`;
+                }
+                displayText += ')';
+                option.textContent = displayText;
+                select.appendChild(option);
+            });
+ 
+            // Get GPS location
+            getLocation();
+ 
+            // Update time every second
+            setInterval(updateTime, 1000);
+            updateTime();
+        });
+ 
+        // Dropdown change handler
+        document.getElementById('nameSelect').addEventListener('change', function() {
+            const infoBox = document.getElementById('infoBox');
+            if (this.value) {
+                const person = JSON.parse(this.value);
+                document.getElementById('categoryValue').textContent = person.category;
+                infoBox.classList.add('show');
+            } else {
+                infoBox.classList.remove('show');
+            }
+        });
+ 
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('timeValue').textContent = now.toLocaleTimeString('en-SG');
+        }
+ 
+        function getLocation() {
+            const gpsValue = document.getElementById('gpsValue');
+ 
+            if (!navigator.geolocation) {
+                gpsValue.textContent = '❌ GPS not supported';
+                gpsValue.style.color = '#dc3545';
+                return;
+            }
+ 
+            gpsValue.textContent = '📍 Checking location...';
+ 
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+ 
+                    const distance = calculateDistance(
+                        userLocation.lat,
+                        userLocation.lng,
+                        TARGET_LAT,
+                        TARGET_LNG
+                    );
+ 
+                    if (distance <= RADIUS_METERS) {
+                        gpsVerified = true;
+                        gpsValue.textContent = `✅ Verified (${Math.round(distance)}m away)`;
+                        gpsValue.style.color = '#28a745';
+                    } else {
+                        gpsVerified = false;
+                        gpsValue.textContent = `❌ Too far (${Math.round(distance)}m away)`;
+                        gpsValue.style.color = '#dc3545';
+                    }
+                },
+                error => {
+                    gpsValue.textContent = '❌ Location denied';
+                    gpsValue.style.color = '#dc3545';
+                    showStatus('Please enable location access to check in', 'error');
+                }
+            );
+        }
+ 
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371e3; // Earth radius in meters
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lng2 - lng1) * Math.PI / 180;
+ 
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+ 
+            return R * c;
+        }
+ 
+        // Form submission
+        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+ 
+            // Check if event is active
+            const eventStatus = isEventActive();
+            if (!eventStatus.active) {
+                showStatus(`⏰ ${eventStatus.message}`, 'error');
+                return;
+            }
+ 
+            const select = document.getElementById('nameSelect');
+            if (!select.value) {
+                showStatus('Please select your name', 'error');
+                return;
+            }
+ 
+            if (!gpsVerified) {
+                showStatus('❌ GPS verification failed. You must be at 2 International Business Park to check in.', 'error');
+                return;
+            }
+ 
+            const person = JSON.parse(select.value);
+            const now = new Date();
+ 
+            const attendance = {
+                name: person.name,
+                category: person.category,
+                timestamp: now.toISOString(),
+                displayTime: now.toLocaleString('en-SG'),
+                gpsLat: userLocation.lat,
+                gpsLng: userLocation.lng,
+                gpsVerified: true
+            };
+ 
+            // Save to localStorage
+            let records = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
+            records.push(attendance);
+            localStorage.setItem('attendanceRecords', JSON.stringify(records));
+ 
+            // Show success
+            showStatus(`✅ Check-in successful! Welcome, ${person.name}!`, 'success');
+ 
+            // Reset form
+            setTimeout(() => {
+                select.value = '';
+                document.getElementById('infoBox').classList.remove('show');
+                document.getElementById('statusMsg').style.display = 'none';
+            }, 3000);
+        });
+ 
+        function showStatus(message, type) {
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.textContent = message;
+            statusMsg.className = `status ${type}`;
+            statusMsg.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+ 
+
+Micron Confidential
