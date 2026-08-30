@@ -1,0 +1,1087 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training System - Admin Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid #e0e0e0;
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .section p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .status-icon {
+            font-size: 24px;
+        }
+        .status-text {
+            flex: 1;
+        }
+        .status-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        .status-value {
+            color: #666;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .link-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .link-box strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .link-box a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            word-break: break-all;
+        }
+        .link-box a:hover {
+            text-decoration: underline;
+        }
+        .workflow {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .workflow h3 {
+            color: #1976D2;
+            margin-bottom: 15px;
+        }
+        .workflow ol {
+            margin-left: 20px;
+        }
+        .workflow li {
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            h1 {
+                font-size: 26px;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚣 Training Availability System</h1>
+        <p class="subtitle">Admin Hub - Setup & Manage</p>
+ 
+        <div class="workflow">
+            <h3>📋 How It Works</h3>
+            <ol>
+                <li><strong>Load Master Roster</strong> - Upload Excel file with all member details (names, categories, paddling sides)</li>
+                <li><strong>Share Form Link</strong> - Every Monday, share the weekly form link in your group chat</li>
+                <li><strong>Members Submit</strong> - Members select their name and which days they'll attend NEXT WEEK</li>
+                <li><strong>Coach Views</strong> - Coach can see who's coming for each training day and export to Excel</li>
+            </ol>
+        </div>
+ 
+        <!-- Step 1: Load Master Data -->
+        <div class="section">
+            <h2>📂 Step 1: Load Master Roster</h2>
+            <p>Upload your Excel file containing all member details. This needs to be done only once (or when roster changes).</p>
+ 
+            <div class="status" id="rosterStatus">
+                <div class="status-icon">❌</div>
+                <div class="status-text">
+                    <div class="status-label">Master Roster</div>
+                    <div class="status-value">Not loaded</div>
+                </div>
+            </div>
+ 
+            <div class="btn-group">
+                <label for="excelUpload" class="btn btn-primary" style="margin: 0; cursor: pointer;">
+                    📂 Load Excel Roster
+                </label>
+                <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display: none;">
+                <button class="btn btn-success" onclick="exportRosterJSON()" id="exportJSONBtn" disabled style="background: #17a2b8;">💾 Download roster.json</button>
+                <button class="btn btn-danger" onclick="clearRoster()" id="clearBtn" disabled>🗑️ Clear Roster</button>
+            </div>
+ 
+            <div style="background: #d1ecf1; border: 2px solid #17a2b8; border-radius: 10px; padding: 15px; margin-top: 15px; display: none;" id="jsonInstructions">
+                <strong style="color: #0c5460;">📤 For GitHub Pages:</strong>
+                <ol style="margin: 10px 0 0 20px; color: #0c5460; line-height: 1.8;">
+                    <li>Click "Download roster.json" button above</li>
+                    <li>Upload the downloaded roster.json file to your GitHub repository</li>
+                    <li>Members will automatically see all names in the dropdown!</li>
+                    <li>Update roster.json whenever your roster changes</li>
+                </ol>
+            </div>
+        </div>
+ 
+        <!-- Step 1.5: Alternate Week Configuration -->
+        <div class="section">
+            <h2>📅 Step 1.5: Alternate Week Land Training</h2>
+            <p>Configure when Wednesday land training happens - the system will automatically show/hide based on the week!</p>
+ 
+            <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 20px; margin-bottom: 15px;">
+                <div style="font-weight: 600; color: #856404; margin-bottom: 10px;">🏃 Wednesday Land Training Schedule</div>
+ 
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="wednesdaySchedule" value="every" onclick="updateWednesdaySchedule('every')">
+                        <div>
+                            <div style="font-weight: 600; color: #333;">Every Week</div>
+                            <div style="font-size: 13px; color: #666;">Wednesday land training happens every week</div>
+                        </div>
+                    </label>
+                </div>
+ 
+                <div style="margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="wednesdaySchedule" value="alternate" checked onclick="updateWednesdaySchedule('alternate')">
+                        <div>
+                            <div style="font-weight: 600; color: #333;">Alternate Weeks</div>
+                            <div style="font-size: 13px; color: #666;">Choose which week has land training:</div>
+                            <div style="margin-top: 8px;">
+                                <label style="margin-right: 15px; font-size: 14px;">
+                                    <input type="radio" name="alternatePattern" value="even" checked onclick="updateAlternatePattern()"> Even weeks (Week 2, 4, 6...)
+                                </label>
+                                <label style="font-size: 14px;">
+                                    <input type="radio" name="alternatePattern" value="odd" onclick="updateAlternatePattern()"> Odd weeks (Week 1, 3, 5...)
+                                </label>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+ 
+                <div>
+                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="wednesdaySchedule" value="never" onclick="updateWednesdaySchedule('never')">
+                        <div>
+                            <div style="font-weight: 600; color: #333;">Never</div>
+                            <div style="font-size: 13px; color: #666;">No Wednesday land training at all</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+ 
+            <button class="btn btn-success" onclick="saveAlternateWeekConfig()" style="background: #28a745;">
+                💾 Save Configuration
+            </button>
+ 
+            <div style="background: #d4edda; border: 2px solid #28a745; border-radius: 10px; padding: 15px; margin-top: 15px;">
+                <strong style="color: #155724; display: block; margin-bottom: 8px;">📊 Current Week Status:</strong>
+                <div id="currentWeekStatus" style="color: #155724; line-height: 1.6;"></div>
+            </div>
+ 
+            <div style="background: #e7f3ff; border: 2px solid #2196F3; border-radius: 10px; padding: 15px; margin-top: 15px;">
+                <strong style="color: #0c5460;">✨ How it works:</strong>
+                <ul style="margin: 10px 0 0 20px; color: #0c5460; line-height: 1.8;">
+                    <li>System automatically calculates current week number</li>
+                    <li>Shows/hides Wednesday based on your configuration</li>
+                    <li><strong>No GitHub upload needed!</strong> Works immediately</li>
+                    <li>Members see correct schedule when they open the form</li>
+                </ul>
+            </div>
+        </div>
+ 
+        <!-- Manual Override Section -->
+        <div class="section">
+            <h2>⚠️ Manual Override - Cancel Specific Training</h2>
+            <p>Need to cancel a specific session due to weather, coach absence, or special event? Use these quick overrides.</p>
+ 
+            <div style="background: white; border-radius: 10px; padding: 20px; margin-bottom: 15px;">
+                <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                    <div style="font-weight: 600; color: #856404; margin-bottom: 10px;">🏃 Cancel Wednesday Land Training</div>
+ 
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; cursor: pointer;">
+                            <input type="checkbox" id="cancelNextWednesday" onchange="updateManualOverrides()">
+                            <div>
+                                <div style="font-weight: 600; color: #333;">Cancel NEXT Wednesday</div>
+                                <div style="font-size: 13px; color: #666;" id="nextWednesdayDate">Loading...</div>
+                            </div>
+                        </label>
+                    </div>
+ 
+                    <div style="font-size: 12px; color: #856404; background: #fff; padding: 8px; border-radius: 5px;">
+                        💡 This override expires automatically after the date passes
+                    </div>
+                </div>
+ 
+                <div style="background: #e7f3ff; border: 2px solid #2196F3; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                    <div style="font-weight: 600; color: #0c5460; margin-bottom: 10px;">🗓️ Cancel Other Training Days</div>
+ 
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; cursor: pointer;">
+                            <input type="checkbox" id="cancelNextTuesday" onchange="updateManualOverrides()">
+                            <div style="font-size: 14px;">
+                                <strong>Cancel NEXT Tuesday</strong> <span style="color: #666;" id="nextTuesdayDate"></span>
+                            </div>
+                        </label>
+                    </div>
+ 
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; cursor: pointer;">
+                            <input type="checkbox" id="cancelNextThursdayWater" onchange="updateManualOverrides()">
+                            <div style="font-size: 14px;">
+                                <strong>Cancel NEXT Thursday Water</strong> <span style="color: #666;" id="nextThursdayDate"></span>
+                            </div>
+                        </label>
+                    </div>
+ 
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; cursor: pointer;">
+                            <input type="checkbox" id="cancelNextThursdayLand" onchange="updateManualOverrides()">
+                            <div style="font-size: 14px;">
+                                <strong>Cancel NEXT Thursday Land</strong> <span style="color: #666;" id="nextThursdayDate2"></span>
+                            </div>
+                        </label>
+                    </div>
+ 
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; cursor: pointer;">
+                            <input type="checkbox" id="cancelNextSaturday" onchange="updateManualOverrides()">
+                            <div style="font-size: 14px;">
+                                <strong>Cancel NEXT Saturday</strong> <span style="color: #666;" id="nextSaturdayDate"></span>
+                            </div>
+                        </label>
+                    </div>
+ 
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; cursor: pointer;">
+                            <input type="checkbox" id="cancelNextSunday" onchange="updateManualOverrides()">
+                            <div style="font-size: 14px;">
+                                <strong>Cancel NEXT Sunday</strong> <span style="color: #666;" id="nextSundayDate"></span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+ 
+            <button class="btn btn-success" onclick="saveManualOverrides()" style="background: #dc3545;">
+                💾 Save Cancellations
+            </button>
+ 
+            <div style="background: #f8d7da; border: 2px solid #dc3545; border-radius: 10px; padding: 15px; margin-top: 15px;">
+                <strong style="color: #721c24; display: block; margin-bottom: 8px;">⚠️ Active Cancellations:</strong>
+                <div id="activeCancellations" style="color: #721c24; line-height: 1.6;">No active cancellations</div>
+            </div>
+ 
+            <div style="background: #e7f3ff; border: 2px solid #2196F3; border-radius: 10px; padding: 15px; margin-top: 15px;">
+                <strong style="color: #0c5460;">ℹ️ How manual overrides work:</strong>
+                <ul style="margin: 10px 0 0 20px; color: #0c5460; line-height: 1.8;">
+                    <li>Check any day to cancel it for NEXT week</li>
+                    <li>Click "Save Cancellations"</li>
+                    <li>Members won't see cancelled days in the form</li>
+                    <li>Overrides expire automatically after the date passes</li>
+                    <li><strong>No GitHub upload needed!</strong></li>
+                </ul>
+            </div>
+        </div>
+ 
+        <!-- Step 2: Member Form Link -->
+        <div class="section">
+            <h2>📱 Step 2: Share Form Link with Members</h2>
+            <p>Share this link in your group chat every Monday. Members use it to indicate which days they'll attend NEXT WEEK.</p>
+ 
+            <div class="link-box">
+                <strong>🔗 Weekly Availability Form:</strong>
+                <a href="weekly-availability.html" id="memberFormLink" target="_blank">
+                    <!-- Will be populated -->
+                </a>
+            </div>
+ 
+            <button class="btn btn-success" onclick="copyFormLink()" style="margin-top: 10px;">
+                📋 Copy Link
+            </button>
+        </div>
+ 
+        <!-- Step 3: Coach View Link -->
+        <div class="section">
+            <h2>👔 Step 3: Coach View</h2>
+            <p>Coach can view boat arrangement with visual left/right layout and filter by gender/category.</p>
+ 
+            <div class="link-box">
+                <strong>🔗 Coach View (Enhanced):</strong>
+                <a href="coach-view-enhanced.html" id="coachViewLink" target="_blank">
+                    <!-- Will be populated -->
+                </a>
+            </div>
+ 
+            <div class="btn-group" style="margin-top: 15px;">
+                <a href="coach-view-enhanced.html" class="btn btn-primary" target="_blank">
+                    👔 Open Coach View
+                </a>
+                <button class="btn btn-primary" onclick="copyCoachLink()">
+                    📋 Copy Link
+                </button>
+            </div>
+ 
+            <p style="margin-top: 10px; font-size: 13px; color: #666;">
+                💡 Features: Visual left/right arrangement, filter by Ladies/Gents, filter by category (Premier, Senior A/B/C)
+            </p>
+        </div>
+ 
+        <!-- Step 4: Mark Attendance -->
+        <div class="section">
+            <h2>✅ Step 4: Mark Actual Attendance</h2>
+            <p>On training day, mark who actually attended (not just who said they'd come).</p>
+ 
+            <div class="link-box">
+                <strong>🔗 Mark Attendance Page:</strong>
+                <a href="mark-attendance.html" id="markAttendanceLink" target="_blank">
+                    <!-- Will be populated -->
+                </a>
+            </div>
+ 
+            <div class="btn-group" style="margin-top: 15px;">
+                <a href="mark-attendance.html" class="btn btn-success" target="_blank">
+                    ✅ Mark Attendance
+                </a>
+                <button class="btn btn-primary" onclick="copyMarkAttendanceLink()">
+                    📋 Copy Link
+                </button>
+            </div>
+        </div>
+ 
+        <!-- Step 5: View Reports -->
+        <div class="section">
+            <h2>📊 Step 5: Attendance Reports</h2>
+            <p>View attendance history, filter by ladies/gents, and export to Excel.</p>
+ 
+            <div class="status">
+                <div class="status-icon">📈</div>
+                <div class="status-text">
+                    <div class="status-label">Attendance Records</div>
+                    <div class="status-value" id="attendanceCount">0 records</div>
+                </div>
+            </div>
+ 
+            <div class="btn-group" style="margin-top: 15px;">
+                <a href="attendance-report.html" class="btn btn-primary" target="_blank">
+                    📊 View Reports
+                </a>
+            </div>
+        </div>
+ 
+        <!-- Step 6: Data Management -->
+        <div class="section">
+            <h2>💾 Step 6: Export & Manage Data</h2>
+            <p>Export all availability responses to Excel for record-keeping.</p>
+ 
+            <div class="status">
+                <div class="status-icon">📊</div>
+                <div class="status-text">
+                    <div class="status-label">Total Availability Responses</div>
+                    <div class="status-value" id="totalResponses">0 responses</div>
+                </div>
+            </div>
+ 
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="exportAllData()">
+                    📥 Export All to Excel
+                </button>
+                <button class="btn btn-danger" onclick="clearAllResponses()">
+                    🗑️ Clear All Responses
+                </button>
+                <button class="btn btn-danger" onclick="clearAttendanceRecords()">
+                    🗑️ Clear Attendance Records
+                </button>
+            </div>
+        </div>
+    </div>
+ 
+    <script src=https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js></script>
+    <script>
+        let workbook = null;
+        let excelFileName = '';
+ 
+        document.addEventListener('DOMContentLoaded', function() {
+            checkRosterStatus();
+            updateResponseCount();
+            setupLinks();
+            loadAlternateWeekConfig();
+ 
+            document.getElementById('excelUpload').addEventListener('change', loadExcelFile);
+        });
+ 
+        function setupLinks() {
+            const baseUrl = window.location.href.replace('setup-hub.html', '');
+            document.getElementById('memberFormLink').href = baseUrl + 'weekly-availability.html';
+            document.getElementById('memberFormLink').textContent = baseUrl + 'weekly-availability.html';
+            document.getElementById('coachViewLink').href = baseUrl + 'coach-view-enhanced.html';
+            document.getElementById('coachViewLink').textContent = baseUrl + 'coach-view-enhanced.html';
+            document.getElementById('markAttendanceLink').href = baseUrl + 'mark-attendance.html';
+            document.getElementById('markAttendanceLink').textContent = baseUrl + 'mark-attendance.html';
+        }
+ 
+        function checkRosterStatus() {
+            const savedData = localStorage.getItem('excelWorkbook');
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    const memberCount = parsed.attendees ? parsed.attendees.length : 0;
+                    const fileName = parsed.fileName || 'Unknown file';
+ 
+                    document.getElementById('rosterStatus').innerHTML = `
+                        <div class="status-icon">✅</div>
+                        <div class="status-text">
+                            <div class="status-label">Master Roster Loaded</div>
+                            <div class="status-value">${fileName} - ${memberCount} members</div>
+                        </div>
+                    `;
+                    document.getElementById('clearBtn').disabled = false;
+                    document.getElementById('exportJSONBtn').disabled = false;
+                    document.getElementById('jsonInstructions').style.display = 'block';
+                } catch (e) {
+                    console.error('Error loading roster status:', e);
+                }
+            }
+        }
+ 
+        function updateResponseCount() {
+            const responses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+            document.getElementById('totalResponses').textContent = `${responses.length} responses`;
+ 
+            // Update attendance count
+            const attendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
+            let totalAttendees = 0;
+            attendance.forEach(record => {
+                totalAttendees += record.attended.length;
+            });
+            document.getElementById('attendanceCount').textContent = `${totalAttendees} total attendances across ${attendance.length} training days`;
+        }
+ 
+        function loadExcelFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+ 
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    workbook = XLSX.read(data, {type: 'array'});
+                    excelFileName = file.name;
+ 
+                    // Extract all members
+                    const allAttendees = [];
+                    const uniqueMembers = new Set();
+ 
+                    workbook.SheetNames.forEach(sheetName => {
+                        const sheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet, {header: 1});
+ 
+                        let nameCol = -1, categoryCol = -1, paddingCol = -1, genderCol = -1;
+ 
+                        for (let row of jsonData) {
+                            if (row.some(cell => String(cell).toLowerCase() === 'name')) {
+                                nameCol = row.findIndex(cell => String(cell).toLowerCase() === 'name');
+                                categoryCol = row.findIndex(cell => String(cell).toLowerCase() === 'category');
+                                paddingCol = row.findIndex(cell => String(cell).toLowerCase().includes('paddling'));
+                                genderCol = row.findIndex(cell => String(cell).toLowerCase() === 'gender' || String(cell).toLowerCase() === 'sex');
+                                break;
+                            }
+                        }
+ 
+                        if (nameCol >= 0 && categoryCol >= 0) {
+                            for (let i = 0; i < jsonData.length; i++) {
+                                const row = jsonData[i];
+                                const name = row[nameCol];
+                                const category = row[categoryCol];
+                                const paddlingSide = paddingCol >= 0 ? row[paddingCol] : '';
+                                const gender = genderCol >= 0 ? row[genderCol] : '';
+ 
+                                if (name && category && String(name).toLowerCase() !== 'name' && !String(name).toLowerCase().includes('present')) {
+                                    const memberKey = String(name).trim();
+                                    if (!uniqueMembers.has(memberKey)) {
+                                        uniqueMembers.add(memberKey);
+                                        allAttendees.push({
+                                            name: memberKey,
+                                            category: category,
+                                            paddlingSide: paddlingSide,
+                                            gender: gender
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    });
+ 
+                    // Save to localStorage
+                    localStorage.setItem('excelWorkbook', JSON.stringify({
+                        workbook: workbook,
+                        fileName: excelFileName,
+                        attendees: allAttendees
+                    }));
+ 
+                    alert(`✅ Master Roster Loaded!\n\n👥 ${allAttendees.length} members\n📋 ${workbook.SheetNames.length} sheets\n\nMembers can now use the form to submit their availability.`);
+ 
+                    checkRosterStatus();
+ 
+                } catch (error) {
+                    alert('❌ Error loading Excel file: ' + error.message);
+                    console.error(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+ 
+        function clearRoster() {
+            if (confirm('⚠️ Are you sure you want to clear the master roster?\n\nMembers will not be able to submit availability until a new roster is loaded.')) {
+                localStorage.removeItem('excelWorkbook');
+                checkRosterStatus();
+                document.getElementById('clearBtn').disabled = true;
+                document.getElementById('exportJSONBtn').disabled = true;
+                document.getElementById('jsonInstructions').style.display = 'none';
+                alert('✅ Roster cleared');
+            }
+        }
+ 
+        function exportRosterJSON() {
+            const savedData = localStorage.getItem('excelWorkbook');
+            if (!savedData) {
+                alert('⚠️ No roster loaded! Please load Excel file first.');
+                return;
+            }
+ 
+            try {
+                const parsed = JSON.parse(savedData);
+ 
+                // Get schedule configuration
+                const scheduleConfig = JSON.parse(localStorage.getItem('trainingScheduleConfig') || '{}');
+ 
+                const rosterData = {
+                    members: parsed.attendees || [],
+                    lastUpdated: new Date().toISOString(),
+                    fileName: parsed.fileName || 'Unknown',
+                    memberCount: (parsed.attendees || []).length,
+                    trainingDetails: {
+                        tuesday: {
+                            type: "Water Training (6pm - 7pm)",
+                            time: "Report at 5:45pm",
+                            location: ""
+                        },
+                        wednesday: {
+                            type: "Land Training (7:15pm - 8:30pm)",
+                            time: "",
+                            location: "Near Blk 261 Jurong East St 24, S600261 (Basketball Court)"
+                        },
+                        thursday: {
+                            type: "Water (6pm - 7pm) & Land (7:15pm - 8:15pm)",
+                            time: "Report at 5:45pm for water",
+                            location: ""
+                        },
+                        saturday: {
+                            type: "Water Training",
+                            time: "",
+                            location: "Attire: Blue Jersey"
+                        },
+                        sunday: {
+                            type: "Water Training",
+                            time: "",
+                            location: "Attire: Red Jersey"
+                        }
+                    },
+                    schedule: {
+                        tuesday: scheduleConfig.tuesday !== false,
+                        wednesday: scheduleConfig.wednesday !== false,
+                        thursdayWater: scheduleConfig.thursdayWater !== false,
+                        thursdayLand: scheduleConfig.thursdayLand !== false,
+                        saturday: scheduleConfig.saturday !== false,
+                        sunday: scheduleConfig.sunday !== false
+                    }
+                };
+ 
+                // Create JSON blob
+                const jsonString = JSON.stringify(rosterData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+ 
+                // Create download link
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'roster.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+ 
+                alert(`✅ roster.json downloaded!\n\n👥 ${rosterData.memberCount} members\n📅 Training details included\n\n📤 Next steps:\n1. Upload roster.json to your GitHub repository\n2. Members will automatically see names & training details!`);
+ 
+            } catch (error) {
+                alert('❌ Error exporting roster: ' + error.message);
+                console.error(error);
+            }
+        }
+ 
+        function copyFormLink() {
+            const link = document.getElementById('memberFormLink').href;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('✅ Form link copied to clipboard!\n\nPaste it in your group chat.');
+            });
+        }
+ 
+        function copyCoachLink() {
+            const link = document.getElementById('coachViewLink').href;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('✅ Coach view link copied to clipboard!');
+            });
+        }
+ 
+        function exportAllData() {
+            const responses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+ 
+            if (responses.length === 0) {
+                alert('⚠️ No responses to export!');
+                return;
+            }
+ 
+            // Prepare data
+            const data = [
+                ['WEEKLY TRAINING AVAILABILITY - ALL RESPONSES'],
+                ['Generated:', new Date().toLocaleString('en-SG')],
+                ['Total Responses:', responses.length],
+                [''],
+                ['Name', 'Category', 'Paddling Side', 'Training Days', 'Week Starting', 'Submitted']
+            ];
+ 
+            responses.forEach(response => {
+                const daysList = response.days.map(d => `${d.name} ${d.display}`).join(', ');
+                const weekStart = new Date(response.weekStart).toLocaleDateString('en-SG');
+                const timestamp = new Date(response.timestamp).toLocaleString('en-SG');
+ 
+                data.push([
+                    response.name,
+                    response.category,
+                    response.paddlingSide || 'Not specified',
+                    daysList,
+                    weekStart,
+                    timestamp
+                ]);
+            });
+ 
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            ws['!cols'] = [
+                {wch: 25}, // Name
+                {wch: 12}, // Category
+                {wch: 15}, // Paddling Side
+                {wch: 50}, // Training Days
+                {wch: 15}, // Week Starting
+                {wch: 20}  // Submitted
+            ];
+ 
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'All Responses');
+ 
+            // Save file
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `All_Availability_Responses_${dateStr}.xlsx`);
+ 
+            alert(`✅ Excel exported!\n\n📊 ${responses.length} responses exported`);
+        }
+ 
+        function clearAllResponses() {
+            if (confirm('⚠️ Are you sure you want to clear ALL availability responses?\n\nThis cannot be undone!')) {
+                localStorage.removeItem('weeklyAvailability');
+                updateResponseCount();
+                alert('✅ All responses cleared');
+            }
+        }
+ 
+        function copyMarkAttendanceLink() {
+            const link = document.getElementById('markAttendanceLink').href;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('✅ Mark attendance link copied to clipboard!');
+            });
+        }
+ 
+        function clearAttendanceRecords() {
+            if (confirm('⚠️ Are you sure you want to clear ALL attendance records?\n\nThis will delete all actual attendance data (not availability responses).\n\nThis cannot be undone!')) {
+                localStorage.removeItem('actualAttendance');
+                updateResponseCount();
+                alert('✅ All attendance records cleared');
+            }
+        }
+ 
+        function getWeekNumber(date) {
+            // Get week number of the year (1-52/53)
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+ 
+        function isWednesdayActive(config) {
+            if (config.schedule === 'every') return true;
+            if (config.schedule === 'never') return false;
+            if (config.schedule === 'alternate') {
+                const weekNum = getWeekNumber(new Date());
+                const isEven = weekNum % 2 === 0;
+                return (config.pattern === 'even' && isEven) || (config.pattern === 'odd' && !isEven);
+            }
+            return true; // Default to active
+        }
+ 
+        function updateWednesdaySchedule(schedule) {
+            updateCurrentWeekStatus();
+        }
+ 
+        function updateAlternatePattern() {
+            updateCurrentWeekStatus();
+        }
+ 
+        function updateCurrentWeekStatus() {
+            const schedule = document.querySelector('input[name="wednesdaySchedule"]:checked').value;
+            const pattern = document.querySelector('input[name="alternatePattern"]:checked')?.value || 'even';
+ 
+            const today = new Date();
+            const weekNum = getWeekNumber(today);
+            const isEven = weekNum % 2 === 0;
+ 
+            const config = { schedule, pattern };
+            const wednesdayActive = isWednesdayActive(config);
+ 
+            let statusHTML = `
+                <div>📅 Current Week: <strong>Week ${weekNum}</strong> (${isEven ? 'Even' : 'Odd'})</div>
+                <div>📆 Today: <strong>${today.toLocaleDateString('en-SG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</strong></div>
+                <div style="margin-top: 10px; padding: 10px; background: ${wednesdayActive ? '#d4edda' : '#f8d7da'}; border-radius: 8px;">
+                    🏃 Wednesday Land Training: <strong>${wednesdayActive ? '✅ ACTIVE this week' : '❌ NOT active this week'}</strong>
+                </div>
+            `;
+ 
+            if (schedule === 'alternate') {
+                const nextWeekNum = weekNum + 1;
+                const nextWeekActive = (pattern === 'even' && nextWeekNum % 2 === 0) || (pattern === 'odd' && nextWeekNum % 2 === 1);
+                statusHTML += `
+                    <div style="margin-top: 8px; font-size: 13px; color: #666;">
+                        Next week (Week ${nextWeekNum}): ${nextWeekActive ? '✅ Active' : '❌ Not active'}
+                    </div>
+                `;
+            }
+ 
+            document.getElementById('currentWeekStatus').innerHTML = statusHTML;
+        }
+ 
+        function saveAlternateWeekConfig() {
+            const schedule = document.querySelector('input[name="wednesdaySchedule"]:checked').value;
+            const pattern = document.querySelector('input[name="alternatePattern"]:checked')?.value || 'even';
+ 
+            const config = {
+                schedule: schedule,
+                pattern: pattern,
+                lastUpdated: new Date().toISOString()
+            };
+ 
+            localStorage.setItem('wednesdayAlternateConfig', JSON.stringify(config));
+ 
+            const wednesdayActive = isWednesdayActive(config);
+            const weekNum = getWeekNumber(new Date());
+ 
+            let message = '✅ Configuration saved!\n\n';
+            if (schedule === 'every') {
+                message += '🏃 Wednesday land training: Every week\n';
+            } else if (schedule === 'never') {
+                message += '🏃 Wednesday land training: Disabled\n';
+            } else {
+                message += `🏃 Wednesday land training: ${pattern === 'even' ? 'Even' : 'Odd'} weeks\n`;
+                message += `📅 Week ${weekNum}: ${wednesdayActive ? '✅ Active' : '❌ Not active'}\n`;
+            }
+            message += '\n✨ No GitHub upload needed!\n';
+            message += '📱 Members will see correct schedule automatically!';
+ 
+            alert(message);
+        }
+ 
+        function loadAlternateWeekConfig() {
+            const savedConfig = localStorage.getItem('wednesdayAlternateConfig');
+ 
+            if (savedConfig) {
+                try {
+                    const config = JSON.parse(savedConfig);
+ 
+                    // Set radio button for schedule type
+                    const scheduleRadio = document.querySelector(`input[name="wednesdaySchedule"][value="${config.schedule}"]`);
+                    if (scheduleRadio) scheduleRadio.checked = true;
+ 
+                    // Set radio button for pattern
+                    const patternRadio = document.querySelector(`input[name="alternatePattern"][value="${config.pattern}"]`);
+                    if (patternRadio) patternRadio.checked = true;
+ 
+                } catch (e) {
+                    console.error('Error loading alternate week config:', e);
+                }
+            }
+ 
+            updateCurrentWeekStatus();
+            loadManualOverrides();
+        }
+ 
+        function getNextDayOfWeek(dayOfWeek) {
+            // dayOfWeek: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
+            const today = new Date();
+            const currentDay = today.getDay();
+            let daysUntilNext = dayOfWeek - currentDay;
+ 
+            if (daysUntilNext <= 0) {
+                daysUntilNext += 7; // Next week
+            }
+ 
+            const nextDate = new Date(today);
+            nextDate.setDate(today.getDate() + daysUntilNext);
+            return nextDate;
+        }
+ 
+        function formatDate(date) {
+            return date.toLocaleDateString('en-SG', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+ 
+        function dateToString(date) {
+            return date.toISOString().split('T')[0]; // YYYY-MM-DD
+        }
+ 
+        function loadManualOverrides() {
+            // Calculate next occurrences
+            const nextTuesday = getNextDayOfWeek(2);
+            const nextWednesday = getNextDayOfWeek(3);
+            const nextThursday = getNextDayOfWeek(4);
+            const nextSaturday = getNextDayOfWeek(6);
+            const nextSunday = getNextDayOfWeek(0);
+ 
+            // Update date displays
+            document.getElementById('nextTuesdayDate').textContent = `(${formatDate(nextTuesday)})`;
+            document.getElementById('nextWednesdayDate').textContent = formatDate(nextWednesday);
+            document.getElementById('nextThursdayDate').textContent = `(${formatDate(nextThursday)})`;
+            document.getElementById('nextThursdayDate2').textContent = `(${formatDate(nextThursday)})`;
+            document.getElementById('nextSaturdayDate').textContent = `(${formatDate(nextSaturday)})`;
+            document.getElementById('nextSundayDate').textContent = `(${formatDate(nextSunday)})`;
+ 
+            // Load saved overrides
+            const savedOverrides = localStorage.getItem('manualCancellations');
+            if (savedOverrides) {
+                try {
+                    const overrides = JSON.parse(savedOverrides);
+ 
+                    // Clean up expired overrides
+                    const today = dateToString(new Date());
+                    const activeOverrides = {};
+ 
+                    Object.keys(overrides).forEach(day => {
+                        if (overrides[day] >= today) {
+                            activeOverrides[day] = overrides[day];
+                        }
+                    });
+ 
+                    // Save cleaned overrides
+                    localStorage.setItem('manualCancellations', JSON.stringify(activeOverrides));
+ 
+                    // Check checkboxes for active overrides
+                    if (activeOverrides.tuesday === dateToString(nextTuesday)) {
+                        document.getElementById('cancelNextTuesday').checked = true;
+                    }
+                    if (activeOverrides.wednesday === dateToString(nextWednesday)) {
+                        document.getElementById('cancelNextWednesday').checked = true;
+                    }
+                    if (activeOverrides.thursdayWater === dateToString(nextThursday)) {
+                        document.getElementById('cancelNextThursdayWater').checked = true;
+                    }
+                    if (activeOverrides.thursdayLand === dateToString(nextThursday)) {
+                        document.getElementById('cancelNextThursdayLand').checked = true;
+                    }
+                    if (activeOverrides.saturday === dateToString(nextSaturday)) {
+                        document.getElementById('cancelNextSaturday').checked = true;
+                    }
+                    if (activeOverrides.sunday === dateToString(nextSunday)) {
+                        document.getElementById('cancelNextSunday').checked = true;
+                    }
+ 
+                    updateActiveCancellationsDisplay(activeOverrides);
+ 
+                } catch (e) {
+                    console.error('Error loading manual overrides:', e);
+                }
+            }
+        }
+ 
+        function updateManualOverrides() {
+            // Just visual feedback, actual save happens on button click
+        }
+ 
+        function saveManualOverrides() {
+            const overrides = {};
+ 
+            // Check each checkbox
+            if (document.getElementById('cancelNextTuesday').checked) {
+                overrides.tuesday = dateToString(getNextDayOfWeek(2));
+            }
+            if (document.getElementById('cancelNextWednesday').checked) {
+                overrides.wednesday = dateToString(getNextDayOfWeek(3));
+            }
+            if (document.getElementById('cancelNextThursdayWater').checked) {
+                overrides.thursdayWater = dateToString(getNextDayOfWeek(4));
+            }
+            if (document.getElementById('cancelNextThursdayLand').checked) {
+                overrides.thursdayLand = dateToString(getNextDayOfWeek(4));
+            }
+            if (document.getElementById('cancelNextSaturday').checked) {
+                overrides.saturday = dateToString(getNextDayOfWeek(6));
+            }
+            if (document.getElementById('cancelNextSunday').checked) {
+                overrides.sunday = dateToString(getNextDayOfWeek(0));
+            }
+ 
+            localStorage.setItem('manualCancellations', JSON.stringify(overrides));
+ 
+            updateActiveCancellationsDisplay(overrides);
+ 
+            const count = Object.keys(overrides).length;
+            if (count > 0) {
+                alert(`✅ Cancellations saved!\n\n❌ ${count} session(s) cancelled for next week\n\n✨ No GitHub upload needed!\n📱 Members will see updated schedule automatically`);
+            } else {
+                alert('✅ All cancellations cleared!\n\nAll sessions are now active.');
+            }
+        }
+ 
+        function updateActiveCancellationsDisplay(overrides) {
+            const container = document.getElementById('activeCancellations');
+ 
+            if (Object.keys(overrides).length === 0) {
+                container.textContent = 'No active cancellations';
+                container.style.color = '#155724';
+                return;
+            }
+ 
+            let html = '<div style="font-weight: 600; margin-bottom: 8px;">The following sessions are cancelled:</div>';
+            html += '<ul style="margin-left: 20px; line-height: 1.8;">';
+ 
+            const dayNames = {
+                tuesday: 'Tuesday',
+                wednesday: 'Wednesday Land',
+                thursdayWater: 'Thursday Water',
+                thursdayLand: 'Thursday Land',
+                saturday: 'Saturday',
+                sunday: 'Sunday'
+            };
+ 
+            Object.keys(overrides).forEach(day => {
+                const date = new Date(overrides[day]);
+                html += `<li><strong>${dayNames[day]}</strong> - ${formatDate(date)}</li>`;
+            });
+ 
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
