@@ -1,0 +1,948 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next Week Training Availability</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .week-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: white;
+            cursor: pointer;
+        }
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .member-info {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            display: none;
+        }
+        .member-info.show {
+            display: block;
+        }
+        .member-info p {
+            margin: 5px 0;
+            color: #1976D2;
+            font-size: 14px;
+        }
+        .member-info strong {
+            color: #0D47A1;
+        }
+        .days-section {
+            margin: 30px 0;
+        }
+        .days-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .day-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+        .day-checkbox:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+        .day-checkbox.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+        .day-checkbox input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+        .day-info {
+            flex: 1;
+            cursor: pointer;
+        }
+        .day-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .attendee-count {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .attendee-count.empty {
+            background: #e0e0e0;
+            color: #666;
+        }
+        .breakdown-details {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .breakdown-badge {
+            background: white;
+            border: 1px solid #e0e0e0;
+            color: #666;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .breakdown-badge.left {
+            border-color: #4facfe;
+            color: #0277bd;
+        }
+        .breakdown-badge.right {
+            border-color: #f093fb;
+            color: #c2185b;
+        }
+        .breakdown-badge.cox {
+            border-color: #ffd700;
+            color: #f57c00;
+        }
+        .day-date {
+            color: #999;
+            font-size: 13px;
+        }
+        .training-details {
+            background: #e7f3ff;
+            border-left: 3px solid #2196F3;
+            padding: 8px 12px;
+            margin-top: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .training-type {
+            font-weight: 600;
+            color: #1976D2;
+            margin-bottom: 3px;
+        }
+        .training-info {
+            color: #666;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+        .success-message {
+            display: none;
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .success-message.show {
+            display: block;
+        }
+        .info-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .day-checkbox {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️ Next Week Training</h1>
+        <div class="week-badge" id="weekBadge">
+            <!-- Week dates will be shown here -->
+        </div>
+        <p class="subtitle">Select your name and training days for next week</p>
+ 
+        <div class="info-box">
+            ℹ️ This form is for NEXT WEEK's training only. Select which days you'll attend.
+        </div>
+ 
+        <div class="form-group">
+            <label for="memberSelect">Your Name *</label>
+            <select id="memberSelect" onchange="showMemberInfo()" required>
+                <option value="">-- Select your name --</option>
+            </select>
+            <div class="member-info" id="memberInfo">
+                <!-- Member details will be shown here -->
+            </div>
+        </div>
+ 
+        <div class="days-section">
+            <h3>📅 Select Training Days (Next Week):</h3>
+ 
+            <div class="day-checkbox" id="tuesdayContainer" onclick="toggleDay(this, 'tuesday')">
+                <input type="checkbox" id="tuesday" onchange="updateSelection()">
+                <label for="tuesday" class="day-info">
+                    <div class="day-name">
+                        <span>Tuesday</span>
+                        <span class="attendee-count" id="tuesdayCount">0 attending</span>
+                    </div>
+                    <div class="breakdown-details" id="tuesdayBreakdown"></div>
+                    <div class="day-date" id="tuesdayDate"></div>
+                    <div class="training-details">
+                        <div class="training-type">💧 Water Training (6pm - 7pm)</div>
+                        <div class="training-info">⏰ Report at 5:45pm</div>
+                    </div>
+                </label>
+            </div>
+ 
+            <div class="day-checkbox" id="wednesdayContainer" onclick="toggleDay(this, 'wednesday')">
+                <input type="checkbox" id="wednesday" onchange="updateSelection()">
+                <label for="wednesday" class="day-info">
+                    <div class="day-name">
+                        <span>Wednesday</span>
+                        <span class="attendee-count" id="wednesdayCount">0 attending</span>
+                    </div>
+                    <div class="breakdown-details" id="wednesdayBreakdown"></div>
+                    <div class="day-date" id="wednesdayDate"></div>
+                    <div class="training-details">
+                        <div class="training-type">🏃 Land Training (7:15pm - 8:30pm)</div>
+                        <div class="training-info">📍 Near Blk 261 Jurong East St 24</div>
+                        <div class="training-info">S600261 (Basketball Court)</div>
+                    </div>
+                </label>
+            </div>
+ 
+            <div class="day-checkbox" id="thursdayWaterContainer" onclick="toggleDay(this, 'thursday_water')">
+                <input type="checkbox" id="thursday_water" onchange="updateSelection()">
+                <label for="thursday_water" class="day-info">
+                    <div class="day-name">
+                        <span>Thursday - Water</span>
+                        <span class="attendee-count" id="thursdayWaterCount">0 attending</span>
+                    </div>
+                    <div class="breakdown-details" id="thursdayWaterBreakdown"></div>
+                    <div class="day-date" id="thursdayWaterDate"></div>
+                    <div class="training-details">
+                        <div class="training-type">💧 Water Training (6pm - 7pm)</div>
+                        <div class="training-info">⏰ Report at 5:45pm</div>
+                    </div>
+                </label>
+            </div>
+ 
+            <div class="day-checkbox" id="thursdayLandContainer" onclick="toggleDay(this, 'thursday_land')">
+                <input type="checkbox" id="thursday_land" onchange="updateSelection()">
+                <label for="thursday_land" class="day-info">
+                    <div class="day-name">
+                        <span>Thursday - Land</span>
+                        <span class="attendee-count" id="thursdayLandCount">0 attending</span>
+                    </div>
+                    <div class="breakdown-details" id="thursdayLandBreakdown"></div>
+                    <div class="day-date" id="thursdayLandDate"></div>
+                    <div class="training-details">
+                        <div class="training-type">🏃 Land Training (7:15pm - 8:15pm)</div>
+                    </div>
+                </label>
+            </div>
+ 
+            <div class="day-checkbox" id="saturdayContainer" onclick="toggleDay(this, 'saturday')">
+                <input type="checkbox" id="saturday" onchange="updateSelection()">
+                <label for="saturday" class="day-info">
+                    <div class="day-name">
+                        <span>Saturday</span>
+                        <span class="attendee-count" id="saturdayCount">0 attending</span>
+                    </div>
+                    <div class="breakdown-details" id="saturdayBreakdown"></div>
+                    <div class="day-date" id="saturdayDate"></div>
+                    <div class="training-details">
+                        <div class="training-type">💧 Water Training</div>
+                        <div class="training-info">👕 Attire: Blue Jersey</div>
+                    </div>
+                </label>
+            </div>
+ 
+            <div class="day-checkbox" id="sundayContainer" onclick="toggleDay(this, 'sunday')">
+                <input type="checkbox" id="sunday" onchange="updateSelection()">
+                <label for="sunday" class="day-info">
+                    <div class="day-name">
+                        <span>Sunday</span>
+                        <span class="attendee-count" id="sundayCount">0 attending</span>
+                    </div>
+                    <div class="breakdown-details" id="sundayBreakdown"></div>
+                    <div class="day-date" id="sundayDate"></div>
+                    <div class="training-details">
+                        <div class="training-type">💧 Water Training</div>
+                        <div class="training-info">👕 Attire: Red Jersey</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+ 
+        <button class="btn-submit" onclick="submitAvailability()">
+            ✅ Submit for Next Week
+        </button>
+ 
+        <div class="success-message" id="successMessage">
+            ✅ Thank you! Your availability for next week has been recorded.
+        </div>
+    </div>
+ 
+    <script>
+        let allMembers = [];
+        let nextWeekDates = {};
+        let trainingDetails = null;
+ 
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMembersList();
+            calculateNextWeekDates();
+            updateAttendeeCounts();
+        });
+ 
+        let wednesdayConfig = null;
+ 
+        function getWeekNumber(date) {
+            // Get week number of the year (1-52/53)
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+ 
+        function isWednesdayActive() {
+            if (!wednesdayConfig) return true; // Default to active if no config
+ 
+            if (wednesdayConfig.schedule === 'every') return true;
+            if (wednesdayConfig.schedule === 'never') return false;
+            if (wednesdayConfig.schedule === 'alternate') {
+                const weekNum = getWeekNumber(new Date());
+                const isEven = weekNum % 2 === 0;
+                return (wednesdayConfig.pattern === 'even' && isEven) ||
+                       (wednesdayConfig.pattern === 'odd' && !isEven);
+            }
+            return true; // Default to active
+        }
+ 
+        async function loadMembersList() {
+            // Try to load from roster.json first (for GitHub Pages deployment)
+            try {
+                const response = await fetch('roster.json');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.members && data.members.length > 0) {
+                        allMembers = data.members;
+                        trainingDetails = data.trainingDetails || null;
+                        console.log('✅ Loaded roster from roster.json');
+                    }
+                }
+            } catch (e) {
+                console.log('roster.json not found, trying localStorage...');
+            }
+ 
+            // Fallback to localStorage (for local testing)
+            if (allMembers.length === 0) {
+                const savedData = localStorage.getItem('excelWorkbook');
+                if (savedData) {
+                    try {
+                        const parsed = JSON.parse(savedData);
+                        allMembers = parsed.attendees || [];
+                        console.log('✅ Loaded roster from localStorage');
+                    } catch (e) {
+                        console.error('Error loading member data:', e);
+                    }
+                }
+            }
+ 
+            populateDropdown();
+            displayTrainingDetails();
+ 
+            // Load schedule config (separate file for weekly updates)
+            await loadScheduleConfig();
+        }
+ 
+        function getNextDayOfWeek(dayOfWeek) {
+            // dayOfWeek: 0=Sunday, 1=Monday, 2=Tuesday, 3=Wednesday, 4=Thursday, 5=Friday, 6=Saturday
+            const today = new Date();
+            const currentDay = today.getDay();
+            let daysUntilNext = dayOfWeek - currentDay;
+ 
+            if (daysUntilNext <= 0) {
+                daysUntilNext += 7; // Next week
+            }
+ 
+            const nextDate = new Date(today);
+            nextDate.setDate(today.getDate() + daysUntilNext);
+            return nextDate;
+        }
+ 
+        function dateToString(date) {
+            return date.toISOString().split('T')[0]; // YYYY-MM-DD
+        }
+ 
+        async function loadScheduleConfig() {
+            // Load Wednesday alternate week configuration from localStorage
+            const savedConfig = localStorage.getItem('wednesdayAlternateConfig');
+            if (savedConfig) {
+                try {
+                    wednesdayConfig = JSON.parse(savedConfig);
+                    console.log('✅ Loaded Wednesday config from localStorage');
+                } catch (e) {
+                    console.error('Error loading Wednesday config:', e);
+                }
+            }
+ 
+            // Apply schedule with manual overrides
+            applyScheduleWithOverrides();
+        }
+ 
+        function applyScheduleWithOverrides() {
+            // Load manual cancellations
+            let manualCancellations = {};
+            const savedOverrides = localStorage.getItem('manualCancellations');
+            if (savedOverrides) {
+                try {
+                    manualCancellations = JSON.parse(savedOverrides);
+ 
+                    // Clean up expired overrides
+                    const today = dateToString(new Date());
+                    Object.keys(manualCancellations).forEach(day => {
+                        if (manualCancellations[day] < today) {
+                            delete manualCancellations[day];
+                        }
+                    });
+                } catch (e) {
+                    console.error('Error loading manual cancellations:', e);
+                }
+            }
+ 
+            // Calculate next dates
+            const nextTuesday = dateToString(getNextDayOfWeek(2));
+            const nextWednesday = dateToString(getNextDayOfWeek(3));
+            const nextThursday = dateToString(getNextDayOfWeek(4));
+            const nextSaturday = dateToString(getNextDayOfWeek(6));
+            const nextSunday = dateToString(getNextDayOfWeek(0));
+ 
+            // Check manual overrides first
+            const cancelledSessions = [];
+ 
+            // Tuesday
+            if (manualCancellations.tuesday === nextTuesday) {
+                document.getElementById('tuesdayContainer').style.display = 'none';
+                cancelledSessions.push('Tuesday');
+                console.log('❌ Tuesday manually cancelled');
+            }
+ 
+            // Wednesday - check both automatic pattern AND manual override
+            const wednesdayAutoActive = isWednesdayActive();
+            if (manualCancellations.wednesday === nextWednesday || !wednesdayAutoActive) {
+                document.getElementById('wednesdayContainer').style.display = 'none';
+                if (manualCancellations.wednesday === nextWednesday) {
+                    cancelledSessions.push('Wednesday Land');
+                    console.log('❌ Wednesday manually cancelled');
+                } else {
+                    cancelledSessions.push('Wednesday Land (alternate week)');
+                    console.log('❌ Wednesday cancelled - alternate week');
+                }
+            } else {
+                document.getElementById('wednesdayContainer').style.display = 'block';
+                console.log('✅ Wednesday active');
+            }
+ 
+            // Thursday Water
+            if (manualCancellations.thursdayWater === nextThursday) {
+                document.getElementById('thursdayWaterContainer').style.display = 'none';
+                cancelledSessions.push('Thursday Water');
+                console.log('❌ Thursday Water manually cancelled');
+            }
+ 
+            // Thursday Land
+            if (manualCancellations.thursdayLand === nextThursday) {
+                document.getElementById('thursdayLandContainer').style.display = 'none';
+                cancelledSessions.push('Thursday Land');
+                console.log('❌ Thursday Land manually cancelled');
+            }
+ 
+            // Saturday
+            if (manualCancellations.saturday === nextSaturday) {
+                document.getElementById('saturdayContainer').style.display = 'none';
+                cancelledSessions.push('Saturday');
+                console.log('❌ Saturday manually cancelled');
+            }
+ 
+            // Sunday
+            if (manualCancellations.sunday === nextSunday) {
+                document.getElementById('sundayContainer').style.display = 'none';
+                cancelledSessions.push('Sunday');
+                console.log('❌ Sunday manually cancelled');
+            }
+ 
+            // Show banner if any sessions cancelled
+            if (cancelledSessions.length > 0) {
+                const banner = document.createElement('div');
+                banner.style.cssText = `
+                    background: #fff3cd;
+                    border: 2px solid #ffc107;
+                    border-radius: 10px;
+                    padding: 15px;
+                    margin-bottom: 20px;
+                    color: #856404;
+                    text-align: center;
+                    font-weight: 600;
+                `;
+                banner.innerHTML = `⚠️ ${cancelledSessions.length} session(s) cancelled this week:<br><span style="font-weight: normal;">${cancelledSessions.join(', ')}</span>`;
+ 
+                const daysSection = document.querySelector('.days-section');
+                if (daysSection && !document.querySelector('.week-banner')) {
+                    banner.className = 'week-banner';
+                    daysSection.insertBefore(banner, daysSection.firstChild);
+                }
+            }
+        }
+ 
+        function populateDropdown() {
+            // Sort members alphabetically
+            allMembers.sort((a, b) => a.name.localeCompare(b.name));
+ 
+            // Populate dropdown
+            const select = document.getElementById('memberSelect');
+ 
+            if (allMembers.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = '-- No member list loaded (Contact admin) --';
+                select.appendChild(option);
+                return;
+            }
+ 
+            allMembers.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.name;
+                option.textContent = member.name;
+                option.dataset.category = member.category;
+                option.dataset.paddlingSide = member.paddlingSide || '';
+                option.dataset.gender = member.gender || '';
+                select.appendChild(option);
+            });
+        }
+ 
+        function displayTrainingDetails() {
+            if (!trainingDetails) return;
+ 
+            const days = ['tuesday', 'wednesday', 'thursday', 'saturday', 'sunday'];
+ 
+            days.forEach(day => {
+                if (trainingDetails[day]) {
+                    const details = trainingDetails[day];
+                    const checkbox = document.getElementById(day);
+                    if (checkbox) {
+                        const container = checkbox.closest('.day-checkbox');
+                        const label = container.querySelector('.day-info');
+ 
+                        // Check if details already added
+                        if (!label.querySelector('.training-details')) {
+                            const detailsDiv = document.createElement('div');
+                            detailsDiv.className = 'training-details';
+                            detailsDiv.innerHTML = `
+                                <div class="training-type">${details.type}</div>
+                                <div class="training-info">⏰ ${details.time}</div>
+                                <div class="training-info">📍 ${details.location}</div>
+                            `;
+                            label.appendChild(detailsDiv);
+                        }
+                    }
+                }
+            });
+        }
+ 
+ 
+        function updateAttendeeCounts() {
+            // Load all responses from localStorage
+            const allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+ 
+            // Count attendees for each day with breakdown
+            const dayCounts = {
+                tuesday: { total: 0, left: 0, right: 0, cox: 0 },
+                wednesday: { total: 0, left: 0, right: 0, cox: 0 },
+                'thursday - water': { total: 0, left: 0, right: 0, cox: 0 },
+                'thursday - land': { total: 0, left: 0, right: 0, cox: 0 },
+                saturday: { total: 0, left: 0, right: 0, cox: 0 },
+                sunday: { total: 0, left: 0, right: 0, cox: 0 }
+            };
+ 
+            // Count responses for next week's dates
+            allResponses.forEach(response => {
+                if (response.days && Array.isArray(response.days)) {
+                    response.days.forEach(day => {
+                        const dayName = day.name.toLowerCase();
+                        if (dayCounts.hasOwnProperty(dayName)) {
+                            dayCounts[dayName].total++;
+ 
+                            // Check paddling side or category for role
+                            const paddlingSide = String(response.paddlingSide || '').toLowerCase();
+                            const category = String(response.category || '').toLowerCase();
+ 
+                            // Check if coxswain
+                            if (paddlingSide.includes('cox') || category.includes('cox')) {
+                                dayCounts[dayName].cox++;
+                            }
+                            // Check left/right
+                            else if (paddlingSide.includes('left')) {
+                                dayCounts[dayName].left++;
+                            } else if (paddlingSide.includes('right')) {
+                                dayCounts[dayName].right++;
+                            }
+                        }
+                    });
+                }
+            });
+ 
+            // Update the count badges and breakdowns
+            const dayMappings = [
+                { key: 'tuesday', id: 'tuesday' },
+                { key: 'wednesday', id: 'wednesday' },
+                { key: 'thursday - water', id: 'thursdayWater' },
+                { key: 'thursday - land', id: 'thursdayLand' },
+                { key: 'saturday', id: 'saturday' },
+                { key: 'sunday', id: 'sunday' }
+            ];
+ 
+            dayMappings.forEach(mapping => {
+                const countElement = document.getElementById(mapping.id + 'Count');
+                const breakdownElement = document.getElementById(mapping.id + 'Breakdown');
+                const counts = dayCounts[mapping.key];
+ 
+                if (countElement) {
+                    if (counts.total === 0) {
+                        countElement.textContent = 'Be first!';
+                        countElement.classList.add('empty');
+                    } else if (counts.total === 1) {
+                        countElement.textContent = '1 attending';
+                        countElement.classList.remove('empty');
+                    } else {
+                        countElement.textContent = counts.total + ' attending';
+                        countElement.classList.remove('empty');
+                    }
+                }
+ 
+                // Update breakdown
+                if (breakdownElement) {
+                    if (counts.total > 0) {
+                        let breakdownHTML = '';
+                        if (counts.left > 0) {
+                            breakdownHTML += `<span class="breakdown-badge left">⬅️ ${counts.left} Left</span>`;
+                        }
+                        if (counts.right > 0) {
+                            breakdownHTML += `<span class="breakdown-badge right">${counts.right} Right ➡️</span>`;
+                        }
+                        if (counts.cox > 0) {
+                            breakdownHTML += `<span class="breakdown-badge cox">🎯 ${counts.cox} Cox</span>`;
+                        }
+                        breakdownElement.innerHTML = breakdownHTML;
+                    } else {
+                        breakdownElement.innerHTML = '';
+                    }
+                }
+            });
+        }
+ 
+        function calculateNextWeekDates() {
+            const today = new Date();
+            const currentDay = today.getDay(); // 0=Sun, 1=Mon, etc
+ 
+            // Calculate days until next Monday
+            let daysUntilNextMonday = (8 - currentDay) % 7;
+            if (daysUntilNextMonday === 0) daysUntilNextMonday = 7;
+ 
+            // Get next Monday
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+ 
+            // Get next Sunday (end of next week)
+            const nextSunday = new Date(nextMonday);
+            nextSunday.setDate(nextMonday.getDate() + 6);
+ 
+            // Update week badge
+            const weekBadgeText = `Week of ${nextMonday.toLocaleDateString('en-SG', {month: 'short', day: 'numeric'})} - ${nextSunday.toLocaleDateString('en-SG', {month: 'short', day: 'numeric', year: 'numeric'})}`;
+            document.getElementById('weekBadge').textContent = weekBadgeText;
+ 
+            // Calculate each training day for NEXT WEEK
+            const daysOfWeek = {
+                tuesday: { offset: 1, id: 'tuesdayDate' },
+                wednesday: { offset: 2, id: 'wednesdayDate' },
+                thursday_water: { offset: 3, id: 'thursdayWaterDate' },
+                thursday_land: { offset: 3, id: 'thursdayLandDate' },
+                saturday: { offset: 5, id: 'saturdayDate' },
+                sunday: { offset: 6, id: 'sundayDate' }
+            };
+ 
+            for (const [dayName, config] of Object.entries(daysOfWeek)) {
+                const date = new Date(nextMonday);
+                date.setDate(nextMonday.getDate() + config.offset);
+ 
+                const dateString = date.toLocaleDateString('en-SG', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                });
+ 
+                document.getElementById(config.id).textContent = dateString;
+ 
+                // Store full date for submission
+                nextWeekDates[dayName] = {
+                    date: date.toISOString().split('T')[0], // YYYY-MM-DD
+                    display: dateString
+                };
+            }
+        }
+ 
+        function showMemberInfo() {
+            const select = document.getElementById('memberSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            const memberInfo = document.getElementById('memberInfo');
+ 
+            if (!select.value) {
+                memberInfo.classList.remove('show');
+                return;
+            }
+ 
+            const category = selectedOption.dataset.category;
+            const paddlingSide = selectedOption.dataset.paddlingSide;
+            const gender = selectedOption.dataset.gender;
+ 
+            let infoHtml = `<p><strong>Category:</strong> ${category}</p>`;
+            if (paddlingSide) {
+                infoHtml += `<p><strong>Paddling Side:</strong> ${paddlingSide}</p>`;
+            }
+            if (gender) {
+                infoHtml += `<p><strong>Gender:</strong> ${gender}</p>`;
+            }
+ 
+            memberInfo.innerHTML = infoHtml;
+            memberInfo.classList.add('show');
+        }
+ 
+        function toggleDay(element, dayId) {
+            const checkbox = document.getElementById(dayId);
+            if (event.target.type !== 'checkbox') {
+                checkbox.checked = !checkbox.checked;
+            }
+            updateSelection();
+        }
+ 
+        function updateSelection() {
+            const days = ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'];
+            days.forEach(day => {
+                const checkbox = document.getElementById(day);
+                if (checkbox) {
+                    const container = checkbox.closest('.day-checkbox');
+                    if (checkbox.checked) {
+                        container.classList.add('selected');
+                    } else {
+                        container.classList.remove('selected');
+                    }
+                }
+            });
+        }
+ 
+        function submitAvailability() {
+            const select = document.getElementById('memberSelect');
+            const name = select.value;
+ 
+            if (!name) {
+                alert('⚠️ Please select your name from the list');
+                select.focus();
+                return;
+            }
+ 
+            const selectedDays = [];
+            const days = ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'];
+ 
+            days.forEach(day => {
+                const checkbox = document.getElementById(day);
+                if (checkbox && checkbox.checked) {
+                    let dayName;
+                    if (day === 'thursday_water') {
+                        dayName = 'Thursday - Water';
+                    } else if (day === 'thursday_land') {
+                        dayName = 'Thursday - Land';
+                    } else {
+                        dayName = day.charAt(0).toUpperCase() + day.slice(1);
+                    }
+ 
+                    selectedDays.push({
+                        name: dayName,
+                        date: nextWeekDates[day].date,
+                        display: nextWeekDates[day].display
+                    });
+                }
+            });
+ 
+            if (selectedDays.length === 0) {
+                alert('⚠️ Please select at least one training day');
+                return;
+            }
+ 
+            // Get member details
+            const selectedOption = select.options[select.selectedIndex];
+            const category = selectedOption.dataset.category;
+            const paddlingSide = selectedOption.dataset.paddlingSide;
+            const gender = selectedOption.dataset.gender;
+ 
+            // Store availability with week information
+            const availability = {
+                name: name,
+                category: category,
+                paddlingSide: paddlingSide,
+                gender: gender,
+                days: selectedDays, // Array with {name, date, display}
+                weekStart: nextWeekDates.tuesday.date, // Use Tuesday as week identifier
+                timestamp: new Date().toISOString()
+            };
+ 
+            // Get existing responses for this week
+            let allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+ 
+            // Remove any old response from this member for the same week
+            allResponses = allResponses.filter(r =>
+                !(r.name.toLowerCase() === name.toLowerCase() && r.weekStart === availability.weekStart)
+            );
+ 
+            // Add new response
+            allResponses.push(availability);
+ 
+            // Save to localStorage
+            localStorage.setItem('weeklyAvailability', JSON.stringify(allResponses));
+ 
+            // Update attendee counts
+            updateAttendeeCounts();
+ 
+            // Show success message
+            document.getElementById('successMessage').classList.add('show');
+            document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+ 
+            // Reset form after 3 seconds
+            setTimeout(() => {
+                select.value = '';
+                document.getElementById('memberInfo').classList.remove('show');
+                const allDays = ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'];
+                allDays.forEach(day => {
+                    const checkbox = document.getElementById(day);
+                    if (checkbox) checkbox.checked = false;
+                });
+                updateSelection();
+                document.getElementById('successMessage').classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
