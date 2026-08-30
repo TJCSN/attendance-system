@@ -1,0 +1,542 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-section {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .filter-section h3 {
+            color: #1976D2;
+            margin-bottom: 15px;
+        }
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-item input[type="checkbox"],
+        .filter-item input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+        .filter-item label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .report-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .report-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .report-table tr:hover {
+            background: #f8f9fa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-male {
+            background: #e3f2fd;
+            color: #1976D2;
+        }
+        .badge-female {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn {
+                width: 100%;
+            }
+            .report-table {
+                font-size: 14px;
+            }
+            .report-table th,
+            .report-table td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📊 Attendance Report</h1>
+                <p style="color: #666; margin-top: 5px;">View and export attendance records</p>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="exportToExcel()">📥 Export to Excel</button>
+                <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
+            </div>
+        </div>
+ 
+        <div class="filter-section">
+            <h3>🎯 Filters</h3>
+ 
+            <div style="margin-bottom: 15px;">
+                <strong style="display: block; margin-bottom: 8px; color: #333;">Gender Filter:</strong>
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <input type="radio" id="filterAll" name="genderFilter" value="all" checked onchange="applyFilters()">
+                        <label for="filterAll">All Members</label>
+                    </div>
+                    <div class="filter-item">
+                        <input type="radio" id="filterLadies" name="genderFilter" value="female" onchange="applyFilters()">
+                        <label for="filterLadies">Ladies Only 👩</label>
+                    </div>
+                    <div class="filter-item">
+                        <input type="radio" id="filterGents" name="genderFilter" value="male" onchange="applyFilters()">
+                        <label for="filterGents">Gents Only 👨</label>
+                    </div>
+                </div>
+            </div>
+ 
+            <div>
+                <strong style="display: block; margin-bottom: 8px; color: #333;">Training Date:</strong>
+                <select id="dateFilter" onchange="applyFilters()" style="padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; width: 100%; max-width: 400px;">
+                    <option value="all">All Dates</option>
+                </select>
+            </div>
+        </div>
+ 
+        <div class="stats" id="stats">
+            <!-- Stats will be populated -->
+        </div>
+ 
+        <div id="reportContainer" style="display: none;">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Category</th>
+                        <th>Paddling Side</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    <!-- Report rows will be populated here -->
+                </tbody>
+            </table>
+        </div>
+ 
+        <div class="empty-state" id="emptyState">
+            <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
+            <h3>No attendance records yet</h3>
+            <p>Mark attendance on training days to see reports here</p>
+        </div>
+    </div>
+ 
+    <script src=https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js></script>
+    <script>
+        let allAttendance = [];
+        let filteredData = [];
+ 
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+ 
+        function loadData() {
+            // Load actual attendance records
+            allAttendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
+ 
+            if (allAttendance.length === 0) {
+                document.getElementById('stats').style.display = 'none';
+                document.getElementById('reportContainer').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                return;
+            }
+ 
+            // Populate date filter
+            populateDateFilter();
+ 
+            // Apply filters
+            applyFilters();
+        }
+ 
+        function populateDateFilter() {
+            const select = document.getElementById('dateFilter');
+            const currentValue = select.value;
+ 
+            // Keep "All Dates" option, clear others
+            select.innerHTML = '<option value="all">All Dates</option>';
+ 
+            // Sort by date descending (most recent first)
+            const sortedAttendance = [...allAttendance].sort((a, b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+ 
+            sortedAttendance.forEach(record => {
+                const option = document.createElement('option');
+                option.value = record.date;
+                option.textContent = `${record.dayName}, ${record.display}`;
+                select.appendChild(option);
+            });
+ 
+            // Restore selection if still valid
+            if (currentValue && currentValue !== 'all') {
+                select.value = currentValue;
+            }
+        }
+ 
+        function applyFilters() {
+            const genderFilter = document.querySelector('input[name="genderFilter"]:checked').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+ 
+            // Flatten all attendance records into individual entries
+            let allRecords = [];
+ 
+            allAttendance.forEach(record => {
+                record.attendedDetails.forEach(member => {
+                    allRecords.push({
+                        date: record.date,
+                        dayName: record.dayName,
+                        display: record.display,
+                        name: member.name,
+                        category: member.category,
+                        paddlingSide: member.paddlingSide,
+                        gender: member.gender || 'Not specified'
+                    });
+                });
+            });
+ 
+            // Apply gender filter
+            if (genderFilter !== 'all') {
+                allRecords = allRecords.filter(record => {
+                    const gender = String(record.gender).toLowerCase();
+                    return gender.includes(genderFilter);
+                });
+            }
+ 
+            // Apply date filter
+            if (dateFilter !== 'all') {
+                allRecords = allRecords.filter(record => record.date === dateFilter);
+            }
+ 
+            filteredData = allRecords;
+ 
+            // Update display
+            updateStats();
+            displayReport();
+        }
+ 
+        function updateStats() {
+            const totalRecords = filteredData.length;
+            const uniqueMembers = new Set(filteredData.map(r => r.name)).size;
+            const uniqueDates = new Set(filteredData.map(r => r.date)).size;
+ 
+            const ladies = filteredData.filter(r =>
+                String(r.gender).toLowerCase().includes('female')
+            ).length;
+ 
+            const gents = filteredData.filter(r =>
+                String(r.gender).toLowerCase().includes('male') &&
+                !String(r.gender).toLowerCase().includes('female')
+            ).length;
+ 
+            const statsHtml = `
+                <div class="stat-card">
+                    <div class="stat-number">${totalRecords}</div>
+                    <div class="stat-label">Total Attendances</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="stat-number">${ladies}</div>
+                    <div class="stat-label">Ladies</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="stat-number">${gents}</div>
+                    <div class="stat-label">Gents</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <div class="stat-number">${uniqueMembers}</div>
+                    <div class="stat-label">Unique Members</div>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <div class="stat-number">${uniqueDates}</div>
+                    <div class="stat-label">Training Days</div>
+                </div>
+            `;
+ 
+            document.getElementById('stats').innerHTML = statsHtml;
+            document.getElementById('stats').style.display = 'grid';
+        }
+ 
+        function displayReport() {
+            if (filteredData.length === 0) {
+                document.getElementById('reportContainer').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('emptyState').innerHTML = `
+                    <div style="font-size: 64px; margin-bottom: 20px;">🔍</div>
+                    <h3>No records match your filters</h3>
+                    <p>Try adjusting the filter settings</p>
+                `;
+                return;
+            }
+ 
+            // Sort by date (most recent first), then by name
+            filteredData.sort((a, b) => {
+                const dateCompare = new Date(b.date) - new Date(a.date);
+                if (dateCompare !== 0) return dateCompare;
+                return a.name.localeCompare(b.name);
+            });
+ 
+            const tbody = document.getElementById('reportTableBody');
+            tbody.innerHTML = '';
+ 
+            filteredData.forEach((record, index) => {
+                const tr = document.createElement('tr');
+ 
+                // Gender badge
+                let genderBadge = '';
+                const gender = String(record.gender).toLowerCase();
+                if (gender.includes('female')) {
+                    genderBadge = '<span class="badge badge-female">👩 Female</span>';
+                } else if (gender.includes('male')) {
+                    genderBadge = '<span class="badge badge-male">👨 Male</span>';
+                } else {
+                    genderBadge = '<span style="color: #999; font-style: italic;">Not specified</span>';
+                }
+ 
+                tr.innerHTML = `
+                    <td style="font-weight: 600; color: #666;">${index + 1}</td>
+                    <td style="color: #333; font-weight: 500;">${record.dayName}<br><span style="font-size: 12px; color: #999;">${record.display}</span></td>
+                    <td style="font-weight: 600; color: #333;">${record.name}</td>
+                    <td>${genderBadge}</td>
+                    <td style="color: #666;">${record.category}</td>
+                    <td style="color: #666;">${record.paddlingSide || 'Not specified'}</td>
+                `;
+ 
+                tbody.appendChild(tr);
+            });
+ 
+            document.getElementById('reportContainer').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+ 
+        function refreshData() {
+            loadData();
+        }
+ 
+        function exportToExcel() {
+            if (filteredData.length === 0) {
+                alert('⚠️ No data to export! Apply filters to see records.');
+                return;
+            }
+ 
+            const genderFilter = document.querySelector('input[name="genderFilter"]:checked').value;
+            let filterLabel = 'All Members';
+            if (genderFilter === 'female') filterLabel = 'Ladies Only';
+            if (genderFilter === 'male') filterLabel = 'Gents Only';
+ 
+            // Prepare Excel data
+            const data = [
+                ['ATTENDANCE REPORT'],
+                ['Filter:', filterLabel],
+                ['Generated:', new Date().toLocaleString('en-SG')],
+                ['Total Records:', filteredData.length],
+                [''],
+                ['Date', 'Day', 'Name', 'Gender', 'Category', 'Paddling Side']
+            ];
+ 
+            filteredData.forEach(record => {
+                data.push([
+                    record.date,
+                    `${record.dayName} ${record.display}`,
+                    record.name,
+                    record.gender,
+                    record.category,
+                    record.paddlingSide || 'Not specified'
+                ]);
+            });
+ 
+            // Add summary section
+            data.push(['']);
+            data.push(['SUMMARY']);
+            const uniqueMembers = new Set(filteredData.map(r => r.name));
+            const uniqueDates = new Set(filteredData.map(r => r.date));
+ 
+            data.push(['Total Attendances:', filteredData.length]);
+            data.push(['Unique Members:', uniqueMembers.size]);
+            data.push(['Training Days:', uniqueDates.size]);
+ 
+            // Member list with attendance count
+            data.push(['']);
+            data.push(['MEMBER ATTENDANCE COUNT']);
+            data.push(['Name', 'Times Attended', 'Gender', 'Category']);
+ 
+            const memberCount = {};
+            filteredData.forEach(record => {
+                if (!memberCount[record.name]) {
+                    memberCount[record.name] = {
+                        count: 0,
+                        gender: record.gender,
+                        category: record.category
+                    };
+                }
+                memberCount[record.name].count++;
+            });
+ 
+            Object.entries(memberCount)
+                .sort((a, b) => b[1].count - a[1].count)
+                .forEach(([name, info]) => {
+                    data.push([name, info.count, info.gender, info.category]);
+                });
+ 
+            // Create worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            ws['!cols'] = [
+                {wch: 12}, // Date
+                {wch: 20}, // Day
+                {wch: 25}, // Name
+                {wch: 12}, // Gender
+                {wch: 12}, // Category
+                {wch: 18}  // Paddling Side
+            ];
+ 
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report');
+ 
+            // Save file
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filterSuffix = genderFilter === 'female' ? '_Ladies' : genderFilter === 'male' ? '_Gents' : '';
+            XLSX.writeFile(wb, `Attendance_Report${filterSuffix}_${dateStr}.xlsx`);
+ 
+            alert(`✅ Excel exported!\n\n${filterLabel}\n📊 ${filteredData.length} records\n👥 ${uniqueMembers.size} members`);
+        }
+    </script>
+</body>
+</html>
