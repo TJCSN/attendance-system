@@ -1,8 +1,717 @@
- 
 {
-  "members": [],
-  "lastUpdated": "",
-  "fileName": "",
+  "members": [
+    {
+      "name": "Aloysius",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Amy",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Jamie",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Winnie",
+      "category": "Senior A",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Avery",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Balasubramaniam",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Bernard",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Hannah",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Zorel",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Bear",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Rayney",
+      "category": "Senior C",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Clarissa",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Claudia",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Denise",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Derrick",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Elise",
+      "category": "Senior C",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Eric",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Fauziah",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Patrick Fong",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Chun Teck",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Thomas",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Guru",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Haron",
+      "category": "Senior A",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Kian Hong",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Linus",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Xiang Kang",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Bao Qiang",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Kang",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Karolina",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Kelvin Tay",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Kelvin Yew",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Pauline Koh",
+      "category": "Senior A",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Nigel",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Darren",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Lee Joon Kiat",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Ah Chuan",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Ah Leong",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Selina Lim",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "TY",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Wei Teng",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Yi Jie",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Ester",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Elizabeth",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Janet",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Michelle",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Minako",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "May Neo",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Lay Peng",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Yun Chuen",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Joe Ng",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Jia Mihn",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Timothy",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Annie",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Wendy",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Norman",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Joey Ong",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Vincent",
+      "category": "Senior A",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Pauline Lee",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Xiaopei",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Phi",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Alvin",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Pradip",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Patrick Pung",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Jason Quek",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Rachel Ang",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Rosman",
+      "category": "Senior C",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Samantha",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "As Ali",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Serene",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Dave",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Sidney",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "CC",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Wei Han",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Wei Ling",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Peter",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Anderson",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Sunshine",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Surina",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Taka",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Tan Joon Kiat",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Jarett",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Kee Seng",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Leong Kok",
+      "category": "Senior C",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Lilian",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Sara",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Selina Tan",
+      "category": "Senior C",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Phyllis",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Tze Hua",
+      "category": "Senior C",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Joseph",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Greg",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Ek Kwang",
+      "category": "Senior B",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Teo",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Tonny",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Vayne",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Wilson",
+      "category": "Senior A",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Jenny",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Jolene",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "AJ",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Ling",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Natalie Yoong",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Huihui",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Alan",
+      "category": "Senior A",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Zack",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Xin Yi",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Nathaniel Teo",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Benjamin",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Male"
+    },
+    {
+      "name": "Josh",
+      "category": "Senior A",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Patricia",
+      "category": "Premier",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Jolly",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Jennifer",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Kristy",
+      "category": "Senior C",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Hui Ping",
+      "category": "Senior A",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Tammy",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Female"
+    },
+    {
+      "name": "Shermaine",
+      "category": "Premier",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Jianping",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Katherine",
+      "category": "Senior B",
+      "paddlingSide": "Left",
+      "gender": "Female"
+    },
+    {
+      "name": "Hock Keong",
+      "category": "Senior A",
+      "paddlingSide": "Right",
+      "gender": "Male"
+    },
+    {
+      "name": "Sonia",
+      "category": "Premier",
+      "paddlingSide": "Right ",
+      "gender": "Female"
+    }
+  ],
+  "lastUpdated": "2026-08-30T11:13:21.878Z",
+  "fileName": "TJSH Attendance List Aug2026.xlsx",
+  "memberCount": 118,
   "trainingDetails": {
     "tuesday": {
       "type": "Water Training (6pm - 7pm)",
@@ -29,5 +738,13 @@
       "time": "",
       "location": "Attire: Red Jersey"
     }
+  },
+  "schedule": {
+    "tuesday": true,
+    "wednesday": true,
+    "thursdayWater": true,
+    "thursdayLand": true,
+    "saturday": true,
+    "sunday": true
   }
 }
