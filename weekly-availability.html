@@ -521,9 +521,19 @@
         let googleSheetsApiUrl = null;
  
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Page loaded, initializing...');
             loadMembersList();
             calculateNextWeekDates();
             updateAttendeeCounts();
+            console.log('✅ Initialization complete');
+ 
+            // Debug: Check if everything loaded
+            setTimeout(() => {
+                console.log('📊 Debug Info:');
+                console.log('- Members loaded:', allMembers.length);
+                console.log('- Dates calculated:', Object.keys(nextWeekDates).length);
+                console.log('- Google Sheets URL:', googleSheetsApiUrl ? 'Configured' : 'Not configured');
+            }, 1000);
         });
  
         let wednesdayConfig = null;
@@ -881,13 +891,13 @@
                     if (counts.total > 0) {
                         let breakdownHTML = '';
                         if (counts.left > 0) {
-                            breakdownHTML += `<span class="breakdown-badge left" onclick="showMemberList('${dayName}', 'left', event)">⬅️ ${counts.left} Left</span>`;
+                            breakdownHTML += `<span class="breakdown-badge left" onclick="showMemberList('${mapping.key}', 'left', event)">⬅️ ${counts.left} Left</span>`;
                         }
                         if (counts.right > 0) {
-                            breakdownHTML += `<span class="breakdown-badge right" onclick="showMemberList('${dayName}', 'right', event)">${counts.right} Right ➡️</span>`;
+                            breakdownHTML += `<span class="breakdown-badge right" onclick="showMemberList('${mapping.key}', 'right', event)">${counts.right} Right ➡️</span>`;
                         }
                         if (counts.cox > 0) {
-                            breakdownHTML += `<span class="breakdown-badge cox" onclick="showMemberList('${dayName}', 'cox', event)">🎯 ${counts.cox} Cox</span>`;
+                            breakdownHTML += `<span class="breakdown-badge cox" onclick="showMemberList('${mapping.key}', 'cox', event)">🎯 ${counts.cox} Cox</span>`;
                         }
                         breakdownElement.innerHTML = breakdownHTML;
                     } else {
@@ -1003,42 +1013,56 @@
         }
  
         async function submitAvailability() {
-            const select = document.getElementById('memberSelect');
-            const name = select.value;
+            try {
+                console.log('Submit button clicked');
  
-            if (!name) {
-                alert('⚠️ Please select your name from the list');
-                select.focus();
-                return;
-            }
+                const select = document.getElementById('memberSelect');
+                const name = select.value;
  
-            const selectedDays = [];
-            const days = ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'];
- 
-            days.forEach(day => {
-                const checkbox = document.getElementById(day);
-                if (checkbox && checkbox.checked) {
-                    let dayName;
-                    if (day === 'thursday_water') {
-                        dayName = 'Thursday - Water';
-                    } else if (day === 'thursday_land') {
-                        dayName = 'Thursday - Land';
-                    } else {
-                        dayName = day.charAt(0).toUpperCase() + day.slice(1);
-                    }
- 
-                    selectedDays.push({
-                        name: dayName,
-                        date: nextWeekDates[day].date,
-                        display: nextWeekDates[day].display
-                    });
+                if (!name) {
+                    alert('⚠️ Please select your name from the list');
+                    select.focus();
+                    return;
                 }
-            });
  
-            if (selectedDays.length === 0) {
-                alert('⚠️ Please select at least one training day');
-                return;
-            }
+                console.log('Name selected:', name);
+ 
+                const selectedDays = [];
+                const days = ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'];
+ 
+                days.forEach(day => {
+                    const checkbox = document.getElementById(day);
+                    if (checkbox && checkbox.checked) {
+                        let dayName;
+                        if (day === 'thursday_water') {
+                            dayName = 'Thursday - Water';
+                        } else if (day === 'thursday_land') {
+                            dayName = 'Thursday - Land';
+                        } else {
+                            dayName = day.charAt(0).toUpperCase() + day.slice(1);
+                        }
+ 
+                        // Check if nextWeekDates exists
+                        if (!nextWeekDates[day]) {
+                            console.error('nextWeekDates not initialized for:', day);
+                            alert('⚠️ Error: Date calculation failed. Please refresh the page.');
+                            return;
+                        }
+ 
+                        selectedDays.push({
+                            name: dayName,
+                            date: nextWeekDates[day].date,
+                            display: nextWeekDates[day].display
+                        });
+                    }
+                });
+ 
+                console.log('Selected days:', selectedDays);
+ 
+                if (selectedDays.length === 0) {
+                    alert('⚠️ Please select at least one training day');
+                    return;
+                }
  
             // Get member details
             const selectedOption = select.options[select.selectedIndex];
@@ -1124,6 +1148,13 @@
                 updateSelection();
                 document.getElementById('successMessage').classList.remove('show');
             }, 3000);
+ 
+            console.log('✅ Submission complete!');
+ 
+            } catch (error) {
+                console.error('❌ Submission error:', error);
+                alert('⚠️ Error submitting: ' + error.message + '\n\nPlease check browser console (F12) for details.');
+            }
         }
  
         async function showMemberList(dayName, side, event) {
@@ -1223,4 +1254,3 @@
     </script>
 </body>
 </html>
- 
