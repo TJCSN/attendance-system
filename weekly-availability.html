@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,6 +19,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 18px; /* Larger base font for seniors */
         }
         .container {
             background: white;
@@ -33,17 +33,18 @@
             color: #333;
             text-align: center;
             margin-bottom: 10px;
-            font-size: 28px;
+            font-size: 36px; /* Larger for seniors */
+            font-weight: 700;
         }
         .week-badge {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-align: center;
-            padding: 12px;
+            padding: 16px;
             border-radius: 10px;
             margin-bottom: 20px;
             font-weight: 600;
-            font-size: 15px;
+            font-size: 20px; /* Larger for seniors */
         }
         .subtitle {
             text-align: center;
@@ -59,17 +60,18 @@
             font-weight: 600;
             color: #333;
             margin-bottom: 10px;
-            font-size: 15px;
+            font-size: 20px; /* Larger for seniors */
         }
         select {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
+            padding: 18px;
+            border: 3px solid #e0e0e0;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 20px; /* Larger for seniors */
             transition: border-color 0.3s;
             background: white;
             cursor: pointer;
+            font-weight: 500;
         }
         select:focus {
             outline: none;
@@ -89,7 +91,7 @@
         .member-info p {
             margin: 5px 0;
             color: #1976D2;
-            font-size: 14px;
+            font-size: 18px; /* Larger for seniors */
         }
         .member-info strong {
             color: #0D47A1;
@@ -133,10 +135,10 @@
             cursor: pointer;
         }
         .day-name {
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 22px; /* Larger for seniors */
+            font-weight: 700;
             color: #333;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -144,10 +146,10 @@
         .attendee-count {
             background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
             color: white;
-            padding: 3px 10px;
+            padding: 6px 14px;
             border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 16px; /* Larger for seniors */
+            font-weight: 700;
             white-space: nowrap;
         }
         .attendee-count.empty {
@@ -162,27 +164,130 @@
         }
         .breakdown-badge {
             background: white;
-            border: 1px solid #e0e0e0;
+            border: 2px solid #e0e0e0;
             color: #666;
-            padding: 3px 8px;
+            padding: 6px 12px;
             border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 15px; /* Larger for seniors */
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .breakdown-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
         .breakdown-badge.left {
             border-color: #4facfe;
             color: #0277bd;
         }
+        .breakdown-badge.left:hover {
+            background: #e3f2fd;
+        }
         .breakdown-badge.right {
             border-color: #f093fb;
             color: #c2185b;
         }
+        .breakdown-badge.right:hover {
+            background: #fce4ec;
+        }
         .breakdown-badge.cox {
             border-color: #ffd700;
             color: #f57c00;
+        }
+        .breakdown-badge.cox:hover {
+            background: #fff8e1;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .member-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .member-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+        .member-item.left {
+            border-left-color: #4facfe;
+        }
+        .member-item.right {
+            border-left-color: #f093fb;
+        }
+        .member-item.cox {
+            border-left-color: #ffd700;
+        }
+        .member-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        .member-details {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
         }
         .day-date {
             color: #999;
@@ -190,30 +295,31 @@
         }
         .training-details {
             background: #e7f3ff;
-            border-left: 3px solid #2196F3;
-            padding: 8px 12px;
+            border-left: 4px solid #2196F3;
+            padding: 10px 14px;
             margin-top: 8px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: 16px; /* Larger for seniors */
         }
         .training-type {
-            font-weight: 600;
+            font-weight: 700;
             color: #1976D2;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
+            font-size: 17px; /* Larger for seniors */
         }
         .training-info {
             color: #666;
-            font-size: 12px;
+            font-size: 15px; /* Larger for seniors */
             line-height: 1.5;
         }
         .btn-submit {
             width: 100%;
-            padding: 18px;
+            padding: 22px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 12px;
-            font-size: 18px;
+            font-size: 22px; /* Larger for seniors */
             font-weight: 700;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -397,10 +503,22 @@
         </div>
     </div>
  
+    <!-- Modal for showing member names -->
+    <div class="modal-overlay" id="memberModal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Members</div>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <ul class="member-list" id="memberList"></ul>
+        </div>
+    </div>
+ 
     <script>
         let allMembers = [];
         let nextWeekDates = {};
         let trainingDetails = null;
+        let googleSheetsApiUrl = null;
  
         document.addEventListener('DOMContentLoaded', function() {
             loadMembersList();
@@ -442,7 +560,11 @@
                     if (data.members && data.members.length > 0) {
                         allMembers = data.members;
                         trainingDetails = data.trainingDetails || null;
+                        googleSheetsApiUrl = data.googleSheetsApiUrl || null;
                         console.log('✅ Loaded roster from roster.json');
+                        if (googleSheetsApiUrl) {
+                            console.log('✅ Google Sheets API URL configured');
+                        }
                     }
                 }
             } catch (e) {
@@ -665,9 +787,29 @@
         }
  
  
-        function updateAttendeeCounts() {
-            // Load all responses from localStorage
-            const allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+        async function updateAttendeeCounts() {
+            // Load all responses from Google Sheets (if configured) or localStorage
+            let allResponses = [];
+ 
+            if (googleSheetsApiUrl) {
+                try {
+                    const response = await fetch(googleSheetsApiUrl);
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            allResponses = result.data;
+                            console.log(`✅ Loaded ${allResponses.length} submissions from Google Sheets`);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading from Google Sheets:', e);
+                    // Fall back to localStorage
+                    allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                }
+            } else {
+                // No Google Sheets configured, use localStorage
+                allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+            }
  
             // Count attendees for each day with breakdown
             const dayCounts = {
@@ -739,13 +881,13 @@
                     if (counts.total > 0) {
                         let breakdownHTML = '';
                         if (counts.left > 0) {
-                            breakdownHTML += `<span class="breakdown-badge left">⬅️ ${counts.left} Left</span>`;
+                            breakdownHTML += `<span class="breakdown-badge left" onclick="showMemberList('${dayName}', 'left', event)">⬅️ ${counts.left} Left</span>`;
                         }
                         if (counts.right > 0) {
-                            breakdownHTML += `<span class="breakdown-badge right">${counts.right} Right ➡️</span>`;
+                            breakdownHTML += `<span class="breakdown-badge right" onclick="showMemberList('${dayName}', 'right', event)">${counts.right} Right ➡️</span>`;
                         }
                         if (counts.cox > 0) {
-                            breakdownHTML += `<span class="breakdown-badge cox">🎯 ${counts.cox} Cox</span>`;
+                            breakdownHTML += `<span class="breakdown-badge cox" onclick="showMemberList('${dayName}', 'cox', event)">🎯 ${counts.cox} Cox</span>`;
                         }
                         breakdownElement.innerHTML = breakdownHTML;
                     } else {
@@ -854,7 +996,7 @@
             });
         }
  
-        function submitAvailability() {
+        async function submitAvailability() {
             const select = document.getElementById('memberSelect');
             const name = select.value;
  
@@ -898,6 +1040,9 @@
             const paddlingSide = selectedOption.dataset.paddlingSide;
             const gender = selectedOption.dataset.gender;
  
+            // Calculate week number
+            const weekNum = getWeekNumber(new Date(nextWeekDates.tuesday.date));
+ 
             // Store availability with week information
             const availability = {
                 name: name,
@@ -906,25 +1051,56 @@
                 gender: gender,
                 days: selectedDays, // Array with {name, date, display}
                 weekStart: nextWeekDates.tuesday.date, // Use Tuesday as week identifier
+                weekNumber: weekNum,
                 timestamp: new Date().toISOString()
             };
  
-            // Get existing responses for this week
-            let allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+            // Save to Google Sheets (if configured) or localStorage
+            if (googleSheetsApiUrl) {
+                try {
+                    const response = await fetch(googleSheetsApiUrl, {
+                        method: 'POST',
+                        mode: 'no-cors', // Google Apps Script requires this
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(availability)
+                    });
  
-            // Remove any old response from this member for the same week
-            allResponses = allResponses.filter(r =>
-                !(r.name.toLowerCase() === name.toLowerCase() && r.weekStart === availability.weekStart)
-            );
+                    console.log('✅ Submitted to Google Sheets');
  
-            // Add new response
-            allResponses.push(availability);
+                    // Also save to localStorage as backup
+                    let allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                    allResponses = allResponses.filter(r =>
+                        !(r.name.toLowerCase() === name.toLowerCase() && r.weekStart === availability.weekStart)
+                    );
+                    allResponses.push(availability);
+                    localStorage.setItem('weeklyAvailability', JSON.stringify(allResponses));
  
-            // Save to localStorage
-            localStorage.setItem('weeklyAvailability', JSON.stringify(allResponses));
+                } catch (error) {
+                    console.error('Error submitting to Google Sheets:', error);
+                    alert('⚠️ There was an issue saving to Google Sheets. Saved locally instead.');
  
-            // Update attendee counts
-            updateAttendeeCounts();
+                    // Fall back to localStorage
+                    let allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                    allResponses = allResponses.filter(r =>
+                        !(r.name.toLowerCase() === name.toLowerCase() && r.weekStart === availability.weekStart)
+                    );
+                    allResponses.push(availability);
+                    localStorage.setItem('weeklyAvailability', JSON.stringify(allResponses));
+                }
+            } else {
+                // No Google Sheets configured, use localStorage only
+                let allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                allResponses = allResponses.filter(r =>
+                    !(r.name.toLowerCase() === name.toLowerCase() && r.weekStart === availability.weekStart)
+                );
+                allResponses.push(availability);
+                localStorage.setItem('weeklyAvailability', JSON.stringify(allResponses));
+            }
+ 
+            // Update attendee counts (wait for it to fetch latest data)
+            await updateAttendeeCounts();
  
             // Show success message
             document.getElementById('successMessage').classList.add('show');
@@ -943,6 +1119,102 @@
                 document.getElementById('successMessage').classList.remove('show');
             }, 3000);
         }
+ 
+        async function showMemberList(dayName, side, event) {
+            event.stopPropagation(); // Prevent day checkbox from toggling
+ 
+            // Load all responses from Google Sheets or localStorage
+            let allResponses = [];
+ 
+            if (googleSheetsApiUrl) {
+                try {
+                    const response = await fetch(googleSheetsApiUrl);
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success && result.data) {
+                            allResponses = result.data;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading from Google Sheets:', e);
+                    allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                }
+            } else {
+                allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+            }
+ 
+            // Filter members for this day and side
+            const members = [];
+            allResponses.forEach(response => {
+                if (response.days && Array.isArray(response.days)) {
+                    response.days.forEach(day => {
+                        if (day.name.toLowerCase() === dayName.toLowerCase()) {
+                            // Check side
+                            const paddlingSide = (response.paddlingSide || '').toLowerCase();
+                            const category = (response.category || '').toLowerCase();
+ 
+                            let match = false;
+                            if (side === 'cox' && (paddlingSide.includes('cox') || category.includes('cox'))) {
+                                match = true;
+                            } else if (side === 'left' && paddlingSide.includes('left')) {
+                                match = true;
+                            } else if (side === 'right' && paddlingSide.includes('right')) {
+                                match = true;
+                            }
+ 
+                            if (match) {
+                                members.push({
+                                    name: response.name,
+                                    category: response.category,
+                                    paddlingSide: response.paddlingSide,
+                                    side: side
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+ 
+            // Sort by name
+            members.sort((a, b) => a.name.localeCompare(b.name));
+ 
+            // Update modal title
+            const dayDisplayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+            let sideIcon = '';
+            let sideLabel = '';
+            if (side === 'left') {
+                sideIcon = '⬅️';
+                sideLabel = 'Left Paddlers';
+            } else if (side === 'right') {
+                sideIcon = '➡️';
+                sideLabel = 'Right Paddlers';
+            } else if (side === 'cox') {
+                sideIcon = '🎯';
+                sideLabel = 'Coxswains';
+            }
+ 
+            document.getElementById('modalTitle').innerHTML = `${sideIcon} ${dayDisplayName} - ${sideLabel}`;
+ 
+            // Build member list
+            const memberListHTML = members.map(member => `
+                <li class="member-item ${member.side}">
+                    <div class="member-name">${member.name}</div>
+                    <div class="member-details">${member.category} • ${member.paddlingSide}</div>
+                </li>
+            `).join('');
+ 
+            document.getElementById('memberList').innerHTML = memberListHTML || '<li style="text-align: center; color: #999; padding: 20px;">No members found</li>';
+ 
+            // Show modal
+            document.getElementById('memberModal').classList.add('show');
+        }
+ 
+        function closeModal(event) {
+            if (!event || event.target === event.currentTarget) {
+                document.getElementById('memberModal').classList.remove('show');
+            }
+        }
     </script>
 </body>
 </html>
+ 
