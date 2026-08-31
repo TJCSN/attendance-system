@@ -188,6 +188,42 @@
             </ol>
         </div>
  
+        <!-- Step 0: Google Sheets Configuration -->
+        <div class="section">
+            <h2>📊 Step 0: Google Sheets Configuration</h2>
+            <p>Connect to Google Sheets to share submissions across all members in real-time!</p>
+ 
+            <div style="background: #e7f3ff; border: 2px solid #2196F3; border-radius: 10px; padding: 20px; margin-bottom: 15px;">
+                <div style="font-weight: 600; color: #0c5460; margin-bottom: 10px;">🔗 Apps Script Web App URL</div>
+                <input type="text" id="googleSheetsUrl" placeholder=https://script.google.com/macros/s/YOUR-SCRIPT-ID/exec style="width: 100%; padding: 12px; border: 2px solid #2196F3; border-radius: 8px; font-size: 14px; font-family: monospace;">
+                <div style="font-size: 13px; color: #0c5460; margin-top: 8px;">
+                    📖 Don't have this yet? Follow the setup guide: <a href="GOOGLE-SHEETS-SETUP.md" target="_blank" style="color: #2196F3; font-weight: 600;">GOOGLE-SHEETS-SETUP.md</a>
+                </div>
+            </div>
+ 
+            <button class="btn btn-success" onclick="saveGoogleSheetsUrl()" style="background: #28a745;">
+                💾 Save Google Sheets URL
+            </button>
+ 
+            <div class="status" id="googleSheetsStatus" style="margin-top: 15px; display: none;">
+                <div class="status-icon">✅</div>
+                <div class="status-text">
+                    <div class="status-label">Google Sheets Connected</div>
+                    <div class="status-value" id="googleSheetsUrlDisplay"></div>
+                </div>
+            </div>
+ 
+            <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 15px; margin-top: 15px;">
+                <strong style="color: #856404;">⚠️ Important:</strong>
+                <ul style="margin: 10px 0 0 20px; color: #856404; line-height: 1.8;">
+                    <li>Set this up BEFORE members start submitting</li>
+                    <li>All submissions will be saved to your Google Sheet</li>
+                    <li>Everyone will see the same real-time attendance counts</li>
+                    <li>You can view/export data directly from Google Sheets</li>
+                </ul>
+            </div>
+        </div>
+ 
         <!-- Step 1: Load Master Data -->
         <div class="section">
             <h2>📂 Step 1: Load Master Roster</h2>
@@ -500,7 +536,39 @@
         let workbook = null;
         let excelFileName = '';
  
+        function saveGoogleSheetsUrl() {
+            const url = document.getElementById('googleSheetsUrl').value.trim();
+ 
+            if (!url) {
+                alert('⚠️ Please enter your Google Apps Script URL');
+                return;
+            }
+ 
+            if (!url.includes('script.google.com')) {
+                alert('⚠️ This doesn\'t look like a valid Google Apps Script URL.\n\nIt should start with:\nhttps://script.google.com/macros/s/...');
+                return;
+            }
+ 
+            localStorage.setItem('googleSheetsApiUrl', url);
+ 
+            document.getElementById('googleSheetsStatus').style.display = 'flex';
+            document.getElementById('googleSheetsUrlDisplay').textContent = url.substring(0, 60) + '...';
+ 
+            alert('✅ Google Sheets URL saved!\n\n📊 All submissions will now be saved to your Google Sheet\n\n📤 Next steps:\n1. Complete roster setup below\n2. Upload all files to GitHub\n3. Share form link with members');
+        }
+ 
+        function loadGoogleSheetsConfig() {
+            const savedUrl = localStorage.getItem('googleSheetsApiUrl');
+ 
+            if (savedUrl) {
+                document.getElementById('googleSheetsUrl').value = savedUrl;
+                document.getElementById('googleSheetsStatus').style.display = 'flex';
+                document.getElementById('googleSheetsUrlDisplay').textContent = savedUrl.substring(0, 60) + '...';
+            }
+        }
+ 
         document.addEventListener('DOMContentLoaded', function() {
+            loadGoogleSheetsConfig();
             checkRosterStatus();
             updateResponseCount();
             setupLinks();
@@ -654,11 +722,15 @@
                 // Get schedule configuration
                 const scheduleConfig = JSON.parse(localStorage.getItem('trainingScheduleConfig') || '{}');
  
+                // Get Google Sheets URL
+                const googleSheetsUrl = localStorage.getItem('googleSheetsApiUrl') || '';
+ 
                 const rosterData = {
                     members: parsed.attendees || [],
                     lastUpdated: new Date().toISOString(),
                     fileName: parsed.fileName || 'Unknown',
                     memberCount: (parsed.attendees || []).length,
+                    googleSheetsApiUrl: googleSheetsUrl,
                     trainingDetails: {
                         tuesday: {
                             type: "Water Training (6pm - 7pm)",
