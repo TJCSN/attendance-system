@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Next Week Training Availability</title>
+    <title>This Week Training Availability</title>
     <style>
         * {
             margin: 0;
@@ -374,14 +374,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>🏋️ Next Week Training</h1>
+        <h1>🏋️ This Week Training</h1>
         <div class="week-badge" id="weekBadge">
             <!-- Week dates will be shown here -->
         </div>
-        <p class="subtitle">Select your name and training days for next week</p>
+        <p class="subtitle">Select your name and training days for this week</p>
  
         <div class="info-box">
-            ℹ️ This form is for NEXT WEEK's training only. Select which days you'll attend.
+            ℹ️ This form is for THIS WEEK's training only. Select which days you'll attend.
         </div>
  
         <div class="form-group">
@@ -395,7 +395,7 @@
         </div>
  
         <div class="days-section">
-            <h3>📅 Select Training Days (Next Week):</h3>
+            <h3>📅 Select Training Days (This Week):</h3>
  
             <div class="day-checkbox" id="tuesdayContainer" onclick="toggleDay(this, 'tuesday')">
                 <input type="checkbox" id="tuesday" onchange="updateSelection()">
@@ -495,11 +495,11 @@
         </div>
  
         <button class="btn-submit" onclick="submitAvailability()">
-            ✅ Submit for Next Week
+            ✅ Submit for This Week
         </button>
  
         <div class="success-message" id="successMessage">
-            ✅ Thank you! Your availability for next week has been recorded.
+            ✅ Thank you! Your availability for this week has been recorded.
         </div>
     </div>
  
@@ -821,7 +821,7 @@
                 sunday: { total: 0, left: 0, right: 0, cox: 0 }
             };
  
-            // Count responses for next week's dates
+            // Count responses for this week's dates
             allResponses.forEach(response => {
                 if (response.days && Array.isArray(response.days)) {
                     response.days.forEach(day => {
@@ -901,23 +901,29 @@
             const today = new Date();
             const currentDay = today.getDay(); // 0=Sun, 1=Mon, etc
  
-            // Calculate days until next Monday
-            let daysUntilNextMonday = (8 - currentDay) % 7;
-            if (daysUntilNextMonday === 0) daysUntilNextMonday = 7;
+            // Calculate THIS week's Monday (not next week)
+            let daysFromMonday;
+            if (currentDay === 0) {
+                // Sunday - go back 6 days to get this week's Monday
+                daysFromMonday = -6;
+            } else {
+                // Mon-Sat - go back to get this week's Monday
+                daysFromMonday = -(currentDay - 1);
+            }
  
-            // Get next Monday
-            const nextMonday = new Date(today);
-            nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+            // Get THIS Monday
+            const thisMonday = new Date(today);
+            thisMonday.setDate(today.getDate() + daysFromMonday);
  
-            // Get next Sunday (end of next week)
-            const nextSunday = new Date(nextMonday);
-            nextSunday.setDate(nextMonday.getDate() + 6);
+            // Get this Sunday (end of this week)
+            const thisSunday = new Date(thisMonday);
+            thisSunday.setDate(thisMonday.getDate() + 6);
  
             // Update week badge
-            const weekBadgeText = `Week of ${nextMonday.toLocaleDateString('en-SG', {month: 'short', day: 'numeric'})} - ${nextSunday.toLocaleDateString('en-SG', {month: 'short', day: 'numeric', year: 'numeric'})}`;
+            const weekBadgeText = `Week of ${thisMonday.toLocaleDateString('en-SG', {month: 'short', day: 'numeric'})} - ${thisSunday.toLocaleDateString('en-SG', {month: 'short', day: 'numeric', year: 'numeric'})}`;
             document.getElementById('weekBadge').textContent = weekBadgeText;
  
-            // Calculate each training day for NEXT WEEK
+            // Calculate each training day for THIS WEEK
             const daysOfWeek = {
                 tuesday: { offset: 1, id: 'tuesdayDate' },
                 wednesday: { offset: 2, id: 'wednesdayDate' },
@@ -928,8 +934,8 @@
             };
  
             for (const [dayName, config] of Object.entries(daysOfWeek)) {
-                const date = new Date(nextMonday);
-                date.setDate(nextMonday.getDate() + config.offset);
+                const date = new Date(thisMonday);
+                date.setDate(thisMonday.getDate() + config.offset);
  
                 const dateString = date.toLocaleDateString('en-SG', {
                     weekday: 'short',
