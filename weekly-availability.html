@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -129,6 +128,18 @@
             margin-right: 15px;
             cursor: pointer;
             accent-color: #667eea;
+        }
+        .day-checkbox input[type="checkbox"]:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .day-checkbox.past {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .day-checkbox.past .day-name {
+            color: #999;
+            text-decoration: line-through;
         }
         .day-info {
             flex: 1;
@@ -384,6 +395,10 @@
             ℹ️ This form is for THIS WEEK's training only. Select which days you'll attend.
         </div>
  
+        <div class="info-box" style="background: #fff3cd; border-color: #ffc107; display: none;" id="resubmitWarning">
+            ⚠️ <strong>Note:</strong> You have already submitted for this week. Submitting again will <strong>OVERWRITE</strong> your previous selection.
+        </div>
+ 
         <div class="form-group">
             <label for="memberSelect">Your Name *</label>
             <select id="memberSelect" onchange="showMemberInfo()" required>
@@ -524,6 +539,7 @@
             console.log('🚀 Page loaded, initializing...');
             loadMembersList();
             calculateNextWeekDates();
+            disablePastDays(); // Disable checkboxes for past training days
             updateAttendeeCounts();
             console.log('✅ Initialization complete');
  
@@ -821,6 +837,44 @@
                 allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
             }
  
+            // IMPORTANT: Remove duplicates (same name + same week)
+            // This handles cases where backend might have duplicates
+            const uniqueResponses = [];
+            const seenKeys = new Set();
+ 
+            allResponses.forEach(response => {
+                if (response.name && response.weekStart) {
+                    const key = `${response.name.toLowerCase().trim()}_${response.weekStart}`;
+ 
+                    if (!seenKeys.has(key)) {
+                        seenKeys.add(key);
+                        uniqueResponses.push(response);
+                    } else {
+                        // Found duplicate - keep the one with latest timestamp
+                        const existingIndex = uniqueResponses.findIndex(r =>
+                            r.name.toLowerCase().trim() === response.name.toLowerCase().trim() &&
+                            r.weekStart === response.weekStart
+                        );
+ 
+                        if (existingIndex !== -1) {
+                            const existing = uniqueResponses[existingIndex];
+                            const existingTime = new Date(existing.timestamp || 0).getTime();
+                            const newTime = new Date(response.timestamp || 0).getTime();
+ 
+                            if (newTime > existingTime) {
+                                // Replace with newer submission
+                                uniqueResponses[existingIndex] = response;
+                            }
+                        }
+                    }
+                }
+            });
+ 
+            console.log(`🔍 Filtered ${allResponses.length} responses to ${uniqueResponses.length} unique (removed ${allResponses.length - uniqueResponses.length} duplicates)`);
+ 
+            // Use unique responses for counting
+            allResponses = uniqueResponses;
+ 
             // Count attendees for each day with breakdown
             const dayCounts = {
                 tuesday: { total: 0, left: 0, right: 0, cox: 0 },
@@ -963,13 +1017,52 @@
             }
         }
  
-        function showMemberInfo() {
+        function disablePastDays() {
+            // Get today's date (start of day)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+ 
+            const days = [
+                { id: 'tuesday', key: 'tuesday' },
+                { id: 'wednesday', key: 'wednesday' },
+                { id: 'thursday_water', key: 'thursday_water' },
+                { id: 'thursday_land', key: 'thursday_land' },
+                { id: 'saturday', key: 'saturday' },
+                { id: 'sunday', key: 'sunday' }
+            ];
+ 
+            days.forEach(day => {
+                if (nextWeekDates[day.key]) {
+                    const dayDate = new Date(nextWeekDates[day.key].date);
+                    dayDate.setHours(0, 0, 0, 0);
+ 
+                    if (dayDate < today) {
+                        // This day is in the past
+                        const checkbox = document.getElementById(day.id);
+                        const dayCheckboxDiv = checkbox.closest('.day-checkbox');
+ 
+                        // Disable checkbox
+                        checkbox.disabled = true;
+                        checkbox.checked = false;
+ 
+                        // Add visual styling
+                        dayCheckboxDiv.classList.add('past');
+ 
+                        console.log(`🚫 Disabled past day: ${day.key} (${nextWeekDates[day.key].display})`);
+                    }
+                }
+            });
+        }
+ 
+        async function showMemberInfo() {
             const select = document.getElementById('memberSelect');
             const selectedOption = select.options[select.selectedIndex];
             const memberInfo = document.getElementById('memberInfo');
+            const warningBox = document.getElementById('resubmitWarning');
  
             if (!select.value) {
                 memberInfo.classList.remove('show');
+                warningBox.style.display = 'none';
                 return;
             }
  
@@ -987,6 +1080,79 @@
  
             memberInfo.innerHTML = infoHtml;
             memberInfo.classList.add('show');
+ 
+            // Check if this member has already submitted for this week
+            await checkExistingSubmission(select.value);
+        }
+ 
+        async function checkExistingSubmission(memberName) {
+            const warningBox = document.getElementById('resubmitWarning');
+ 
+            try {
+                // Load all responses from Google Sheets or localStorage
+                let allResponses = [];
+ 
+                if (googleSheetsApiUrl) {
+                    try {
+                        const response = await fetch(googleSheetsApiUrl);
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result.success && result.data) {
+                                allResponses = result.data;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error loading from Google Sheets:', e);
+                        allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                    }
+                } else {
+                    allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                }
+ 
+                // Check if member already submitted for this week
+                const thisWeekStart = nextWeekDates.tuesday?.date;
+                if (!thisWeekStart) {
+                    warningBox.style.display = 'none';
+                    return;
+                }
+ 
+                const existingSubmission = allResponses.find(r =>
+                    r.name && r.name.toLowerCase() === memberName.toLowerCase() &&
+                    r.weekStart === thisWeekStart
+                );
+ 
+                if (existingSubmission) {
+                    warningBox.style.display = 'block';
+ 
+                    // Pre-fill their previous selections
+                    if (existingSubmission.days && Array.isArray(existingSubmission.days)) {
+                        existingSubmission.days.forEach(day => {
+                            const dayName = day.name.toLowerCase();
+                            let checkboxId = '';
+ 
+                            if (dayName === 'tuesday') checkboxId = 'tuesday';
+                            else if (dayName === 'wednesday') checkboxId = 'wednesday';
+                            else if (dayName === 'thursday - water') checkboxId = 'thursday_water';
+                            else if (dayName === 'thursday - land') checkboxId = 'thursday_land';
+                            else if (dayName === 'saturday') checkboxId = 'saturday';
+                            else if (dayName === 'sunday') checkboxId = 'sunday';
+ 
+                            if (checkboxId) {
+                                const checkbox = document.getElementById(checkboxId);
+                                if (checkbox && !checkbox.disabled) {
+                                    checkbox.checked = true;
+                                }
+                            }
+                        });
+                        updateSelection();
+                    }
+                } else {
+                    warningBox.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Error checking existing submission:', e);
+                warningBox.style.display = 'none';
+            }
         }
  
         function toggleDay(element, dayId) {
@@ -1064,6 +1230,22 @@
                     return;
                 }
  
+                // Check if any selected days are in the past
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Start of today for fair comparison
+ 
+                const pastDays = selectedDays.filter(day => {
+                    const dayDate = new Date(day.date);
+                    dayDate.setHours(0, 0, 0, 0);
+                    return dayDate < today;
+                });
+ 
+                if (pastDays.length > 0) {
+                    const pastDayNames = pastDays.map(d => d.display).join(', ');
+                    alert(`⚠️ Cannot submit for past training days!\n\nThe following days have already passed:\n${pastDayNames}\n\nPlease uncheck these days and submit again.`);
+                    return;
+                }
+ 
             // Get member details
             const selectedOption = select.options[select.selectedIndex];
             const category = selectedOption.dataset.category;
@@ -1085,48 +1267,48 @@
                 timestamp: new Date().toISOString()
             };
  
-            // Save to Google Sheets (if configured) or localStorage
+            // IMPORTANT: Remove duplicates before saving
+            // Save to localStorage first (with deduplication)
+            let allLocalResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+ 
+            // Remove any existing submission from this person for this week
+            allLocalResponses = allLocalResponses.filter(r => {
+                const isDuplicate = r.name && name &&
+                    r.name.toLowerCase().trim() === name.toLowerCase().trim() &&
+                    r.weekStart === availability.weekStart;
+                return !isDuplicate; // Keep only non-duplicates
+            });
+ 
+            // Add new submission
+            allLocalResponses.push(availability);
+            localStorage.setItem('weeklyAvailability', JSON.stringify(allLocalResponses));
+ 
+            console.log('✅ Saved to localStorage (duplicates removed)');
+ 
+            // Save to Google Sheets (if configured)
             if (googleSheetsApiUrl) {
                 try {
+                    // Send with action to indicate this should replace any existing record
+                    const dataToSend = {
+                        ...availability,
+                        action: 'upsert' // Tell backend to update or insert
+                    };
+ 
                     const response = await fetch(googleSheetsApiUrl, {
                         method: 'POST',
                         mode: 'no-cors', // Google Apps Script requires this
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(availability)
+                        body: JSON.stringify(dataToSend)
                     });
  
                     console.log('✅ Submitted to Google Sheets');
  
-                    // Also save to localStorage as backup
-                    let allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
-                    allResponses = allResponses.filter(r =>
-                        !(r.name.toLowerCase() === name.toLowerCase() && r.weekStart === availability.weekStart)
-                    );
-                    allResponses.push(availability);
-                    localStorage.setItem('weeklyAvailability', JSON.stringify(allResponses));
- 
                 } catch (error) {
                     console.error('Error submitting to Google Sheets:', error);
-                    alert('⚠️ There was an issue saving to Google Sheets. Saved locally instead.');
- 
-                    // Fall back to localStorage
-                    let allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
-                    allResponses = allResponses.filter(r =>
-                        !(r.name.toLowerCase() === name.toLowerCase() && r.weekStart === availability.weekStart)
-                    );
-                    allResponses.push(availability);
-                    localStorage.setItem('weeklyAvailability', JSON.stringify(allResponses));
+                    console.log('⚠️ Continuing with localStorage data');
                 }
-            } else {
-                // No Google Sheets configured, use localStorage only
-                let allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
-                allResponses = allResponses.filter(r =>
-                    !(r.name.toLowerCase() === name.toLowerCase() && r.weekStart === availability.weekStart)
-                );
-                allResponses.push(availability);
-                localStorage.setItem('weeklyAvailability', JSON.stringify(allResponses));
             }
  
             // Update attendee counts (wait for it to fetch latest data)
@@ -1254,3 +1436,4 @@
     </script>
 </body>
 </html>
+ 
