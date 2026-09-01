@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1362,6 +1363,43 @@
                 allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
             }
  
+            // IMPORTANT: Remove duplicates (same name + same week)
+            const uniqueResponses = [];
+            const seenKeys = new Set();
+ 
+            allResponses.forEach(response => {
+                if (response.name && response.weekStart) {
+                    const key = `${response.name.toLowerCase().trim()}_${response.weekStart}`;
+ 
+                    if (!seenKeys.has(key)) {
+                        seenKeys.add(key);
+                        uniqueResponses.push(response);
+                    } else {
+                        // Found duplicate - keep the one with latest timestamp
+                        const existingIndex = uniqueResponses.findIndex(r =>
+                            r.name.toLowerCase().trim() === response.name.toLowerCase().trim() &&
+                            r.weekStart === response.weekStart
+                        );
+ 
+                        if (existingIndex !== -1) {
+                            const existing = uniqueResponses[existingIndex];
+                            const existingTime = new Date(existing.timestamp || 0).getTime();
+                            const newTime = new Date(response.timestamp || 0).getTime();
+ 
+                            if (newTime > existingTime) {
+                                // Replace with newer submission
+                                uniqueResponses[existingIndex] = response;
+                            }
+                        }
+                    }
+                }
+            });
+ 
+            console.log(`🔍 [Member List] Filtered ${allResponses.length} responses to ${uniqueResponses.length} unique`);
+ 
+            // Use unique responses
+            allResponses = uniqueResponses;
+ 
             // Filter members for this day and side
             const members = [];
             allResponses.forEach(response => {
@@ -1436,4 +1474,3 @@
     </script>
 </body>
 </html>
- 
