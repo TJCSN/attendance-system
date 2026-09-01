@@ -709,9 +709,10 @@
       "gender": "Female"
     }
   ],
-  "lastUpdated": "2026-08-30T11:13:21.878Z",
+  "lastUpdated": "2026-09-01T10:38:17.528Z",
   "fileName": "TJSH Attendance List Aug2026.xlsx",
   "memberCount": 118,
+  "googleSheetsApiUrl": "https://script.google.com/macros/s/AKfycbzZ9Zu8u7q6oW8baUKXhsXvKaTONczQRdd7-hdSfMUA3wE-jjGbZ4aSwfSQrYchCQo4Pw/exec",
   "trainingDetails": {
     "tuesday": {
       "type": "Water Training (6pm - 7pm)",
