@@ -318,6 +318,7 @@
             <div class="btn-group">
                 <button class="btn btn-success" onclick="exportToExcel()">📥 Export to Excel</button>
                 <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
+                <span id="lastUpdated" style="margin-left: 12px; font-size: 13px; color: #666;"></span>
             </div>
         </div>
  
@@ -386,38 +387,91 @@
     </div>
  
     <script src=https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js></script>
+    <script src="sync.js"></script>
     <script>
         let allResponses = [];
         let trainingDates = [];
         let allMembers = [];
         let filteredMembers = [];
  
-        document.addEventListener('DOMContentLoaded', function() {
-            loadData();
-            populateTrainingDaySelector();
+        let rosterMap = {};
+        const norm = v => String(v || '').trim().toLowerCase();
+
+        // roster.json is the source of truth for category / side / gender
+        async function loadRoster() {
+            try {
+                const r = await fetch('roster.json', { cache: 'no-store' });
+                if (r.ok) {
+                    const d = await r.json();
+                    (d.members || []).forEach(m => { rosterMap[norm(m.name)] = m; });
+                }
+            } catch (e) {
+                console.warn('roster.json not loaded:', e);
+            }
+        }
+
+        // Keep only the newest response per person per week, and fill details from the roster
+        function cleanResponses(list) {
+            const latest = {};
+            list.forEach(r => {
+                if (!r.name || !Array.isArray(r.days)) return;
+                const key = norm(r.name) + '_' + r.weekStart;
+                if (!latest[key] || String(r.timestamp) > String(latest[key].timestamp)) latest[key] = r;
+            });
+            return Object.values(latest).map(r => {
+                const m = rosterMap[norm(r.name)];
+                return Object.assign({}, r, {
+                    category: (m && m.category) || r.category,
+                    paddlingSide: String((m && m.paddlingSide) || r.paddlingSide || '').trim(),
+                    gender: (m && m.gender) || r.gender
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadRoster();
+            SeahawkSync.poll(refreshData, 30000); // loads now, then every 30s
         });
  
-        function loadData() {
-            allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
- 
+        async function loadData() {
+            let list;
+            let note = '';
+            try {
+                const all = await SeahawkSync.fetchAll();
+                list = all.availability;
+                if (all.roster && all.roster.length) {   // live Roster tab wins over roster.json
+                    rosterMap = {};
+                    all.roster.forEach(m => { rosterMap[norm(m.name)] = m; });
+                }
+            } catch (e) {
+                console.warn('Sheet unavailable, using this device only:', e);
+                list = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                note = ' (offline - this device only)';
+            }
+            allResponses = cleanResponses(list);
+
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 7);
+            cutoff.setHours(0, 0, 0, 0);
+
             const dateSet = new Map();
             allResponses.forEach(response => {
                 response.days.forEach(day => {
+                    if (new Date(day.date) < cutoff) return; // hide training days older than a week
                     if (!dateSet.has(day.date)) {
-                        dateSet.set(day.date, {
-                            date: day.date,
-                            name: day.name,
-                            display: day.display
-                        });
+                        dateSet.set(day.date, { date: day.date, name: day.name, display: day.display });
                     }
                 });
             });
- 
+
             trainingDates = Array.from(dateSet.values()).sort((a, b) =>
                 new Date(a.date) - new Date(b.date)
             );
+
+            document.getElementById('lastUpdated').textContent =
+                'Updated ' + new Date().toLocaleTimeString('en-SG') + note;
         }
- 
+
         function populateTrainingDaySelector() {
             const select = document.getElementById('trainingDaySelect');
  
@@ -503,6 +557,7 @@
         }
  
         function displayBoatArrangement() {
+            document.querySelectorAll('.unspecified-block').forEach(el => el.remove());
             // Separate by paddling side
             const leftPaddlers = filteredMembers.filter(m =>
                 String(m.paddlingSide || '').toLowerCase().includes('left')
@@ -544,6 +599,7 @@
             // Show unspecified if any
             if (unspecified.length > 0) {
                 const unspecifiedDiv = document.createElement('div');
+                unspecifiedDiv.className = 'unspecified-block';
                 unspecifiedDiv.style.gridColumn = '1 / -1';
                 unspecifiedDiv.style.marginTop = '20px';
                 unspecifiedDiv.innerHTML = `
@@ -655,20 +711,27 @@
             document.getElementById('stats').style.display = 'grid';
         }
  
-        function refreshData() {
-            loadData();
-            const currentDate = document.getElementById('trainingDaySelect').value;
- 
+        async function refreshData() {
             const select = document.getElementById('trainingDaySelect');
+            const currentDate = select.value;
+            const gender = document.getElementById('genderFilter').value;
+            const category = document.getElementById('categoryFilter').value;
+
+            await loadData();
+
             select.innerHTML = '<option value="">-- Select a training day --</option>';
             populateTrainingDaySelector();
- 
-            if (currentDate) {
+
+            if (currentDate && trainingDates.some(d => d.date === currentDate)) {
                 select.value = currentDate;
                 loadMembers();
+                // keep the coach's filters across refreshes
+                document.getElementById('genderFilter').value = gender;
+                document.getElementById('categoryFilter').value = category;
+                applyFilters();
             }
         }
- 
+
         function exportToExcel() {
             const selectedDate = document.getElementById('trainingDaySelect').value;
  

@@ -199,6 +199,7 @@
             <div class="btn-group">
                 <button class="btn btn-success" onclick="exportToExcel()">📥 Export to Excel</button>
                 <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
+                <span id="lastUpdated" style="margin-left: 12px; font-size: 13px; color: #666;"></span>
             </div>
         </div>
  
@@ -261,17 +262,28 @@
     </div>
  
     <script src=https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js></script>
+    <script src="sync.js"></script>
     <script>
         let allAttendance = [];
         let filteredData = [];
  
         document.addEventListener('DOMContentLoaded', function() {
-            loadData();
+            SeahawkSync.poll(loadData, 30000); // loads now, then every 30s
         });
  
-        function loadData() {
-            // Load actual attendance records
-            allAttendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
+        async function loadData() {
+            // Load attendance records from the shared sheet (falls back to this device)
+            let note = '';
+            try {
+                allAttendance = (await SeahawkSync.fetchAll()).attendance;
+            } catch (e) {
+                console.warn('Sheet unavailable, using this device only:', e);
+                allAttendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
+                note = ' (offline - this device only)';
+            }
+            allAttendance.forEach(r => { r.attendedDetails = r.attendedDetails || []; });
+            document.getElementById('lastUpdated').textContent =
+                'Updated ' + new Date().toLocaleTimeString('en-SG') + note;
  
             if (allAttendance.length === 0) {
                 document.getElementById('stats').style.display = 'none';

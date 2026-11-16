@@ -397,7 +397,13 @@
         </div>
  
         <div class="info-box" style="background: #fff3cd; border-color: #ffc107; display: none;" id="resubmitWarning">
-            ⚠️ <strong>Note:</strong> You have already submitted for this week. Submitting again will <strong>OVERWRITE</strong> your previous selection.
+            <span id="resubmitText">⚠️ <strong>Note:</strong> You have already submitted for this week. Submitting again will <strong>OVERWRITE</strong> your previous selection.</span>
+            <div style="margin-top: 10px;">
+                <button type="button" id="withdrawBtn" onclick="withdrawAvailability()"
+                    style="background: #dc3545; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                    🚫 Can't make it this week
+                </button>
+            </div>
         </div>
  
         <div class="form-group">
@@ -530,6 +536,7 @@
         </div>
     </div>
  
+    <script src="sync.js"></script>
     <script>
         let allMembers = [];
         let nextWeekDates = {};
@@ -554,6 +561,7 @@
         });
  
         let wednesdayConfig = null;
+        let serverConfig = {}; // shared settings from the Google Sheet (Config tab)
  
         function getWeekNumber(date) {
             // Get week number of the year (1-52/53)
@@ -598,6 +606,20 @@
                 console.log('roster.json not found, trying localStorage...');
             }
  
+            // Prefer the live Roster tab in the Google Sheet (active members only)
+            try {
+                const all = await SeahawkSync.fetchAll();
+                const sheetMembers = (all.roster || []).filter(m => m.active);
+                if (sheetMembers.length > 0) {
+                    allMembers = sheetMembers;
+                    console.log(`✅ Loaded ${sheetMembers.length} active members from the Roster tab`);
+                } else {
+                    console.log('Roster tab empty or missing, using roster.json');
+                }
+            } catch (e) {
+                console.warn('Could not read Roster tab, using roster.json:', e);
+            }
+
             // Fallback to localStorage (for local testing)
             if (allMembers.length === 0) {
                 const savedData = localStorage.getItem('excelWorkbook');
@@ -640,7 +662,16 @@
  
         async function loadScheduleConfig() {
             // Load Wednesday alternate week configuration from localStorage
-            const savedConfig = localStorage.getItem('wednesdayAlternateConfig');
+            // Shared settings from the sheet win over this browser's copy
+            try {
+                const all = await SeahawkSync.fetchAll();
+                serverConfig = all.config || {};
+            } catch (e) {
+                console.warn('Could not load shared config, using local copy:', e);
+            }
+            const savedConfig = serverConfig.wednesdayAlternateConfig !== undefined
+                ? JSON.stringify(serverConfig.wednesdayAlternateConfig)
+                : localStorage.getItem('wednesdayAlternateConfig');
             if (savedConfig) {
                 try {
                     wednesdayConfig = JSON.parse(savedConfig);
@@ -657,7 +688,9 @@
         function applyScheduleWithOverrides() {
             // Load manual cancellations
             let manualCancellations = {};
-            const savedOverrides = localStorage.getItem('manualCancellations');
+            const savedOverrides = serverConfig.manualCancellations !== undefined
+                ? JSON.stringify(serverConfig.manualCancellations)
+                : localStorage.getItem('manualCancellations');
             if (savedOverrides) {
                 try {
                     manualCancellations = JSON.parse(savedOverrides);
@@ -1117,13 +1150,37 @@
                     return;
                 }
  
-                const existingSubmission = allResponses.find(r =>
-                    r.name && r.name.toLowerCase() === memberName.toLowerCase() &&
-                    r.weekStart === thisWeekStart
-                );
+                // If there are several submissions for this person and week, use the newest one
+                const existingSubmission = allResponses
+                    .filter(r =>
+                        r.name && r.name.toLowerCase().trim() === memberName.toLowerCase().trim() &&
+                        r.weekStart === thisWeekStart
+                    )
+                    .reduce((latest, r) =>
+                        (!latest || new Date(r.timestamp || 0) >= new Date(latest.timestamp || 0)) ? r : latest,
+                        null
+                    );
  
                 if (existingSubmission) {
                     warningBox.style.display = 'block';
+
+                    // Are any upcoming days still selected?
+                    const todayMidnight = new Date();
+                    todayMidnight.setHours(0, 0, 0, 0);
+                    const upcomingDays = (existingSubmission.days || []).filter(d => {
+                        const dd = new Date(d.date);
+                        dd.setHours(0, 0, 0, 0);
+                        return dd >= todayMidnight;
+                    });
+                    const text = document.getElementById('resubmitText');
+                    const withdrawBtn = document.getElementById('withdrawBtn');
+                    if (upcomingDays.length === 0) {
+                        text.innerHTML = '🚫 You are currently marked as <strong>NOT attending</strong> for the rest of this week. Select days and submit if you want to join again.';
+                        withdrawBtn.style.display = 'none';
+                    } else {
+                        text.innerHTML = '⚠️ <strong>Note:</strong> You have already submitted for this week. Submitting again will <strong>OVERWRITE</strong> your previous selection.';
+                        withdrawBtn.style.display = 'inline-block';
+                    }
  
                     // Pre-fill their previous selections
                     if (existingSubmission.days && Array.isArray(existingSubmission.days)) {
@@ -1179,6 +1236,94 @@
             });
         }
  
+        // "Can't make it this week": removes the person from all upcoming days.
+        // Days that have already passed are left untouched.
+        async function withdrawAvailability() {
+            const select = document.getElementById('memberSelect');
+            const name = select.value;
+            if (!name) {
+                alert('⚠️ Please select your name from the list');
+                return;
+            }
+            if (!confirm(`Remove ${name} from the rest of this week's training?\n\nDays that have already passed are not changed. You can submit again later if your plans change.`)) {
+                return;
+            }
+
+            const btn = document.getElementById('withdrawBtn');
+            btn.disabled = true;
+            try {
+                const weekStart = nextWeekDates.tuesday?.date;
+                const sameName = r => r.name && r.name.toLowerCase().trim() === name.toLowerCase().trim() && r.weekStart === weekStart;
+
+                // Find the newest existing submission (shared sheet first, then this device)
+                let list;
+                try {
+                    list = (await SeahawkSync.fetchAll()).availability;
+                } catch (e) {
+                    list = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                }
+                const mine = list.filter(sameName).reduce((latest, r) =>
+                    (!latest || new Date(r.timestamp || 0) >= new Date(latest.timestamp || 0)) ? r : latest, null);
+                if (!mine) {
+                    alert('No submission found for this week, so there is nothing to remove.');
+                    return;
+                }
+
+                // Keep only days that have already passed
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const keptDays = (mine.days || []).filter(d => {
+                    const dd = new Date(d.date);
+                    dd.setHours(0, 0, 0, 0);
+                    return dd < today;
+                });
+
+                const opt = select.options[select.selectedIndex];
+                const record = {
+                    name: name,
+                    category: opt.dataset.category,
+                    paddlingSide: opt.dataset.paddlingSide,
+                    gender: opt.dataset.gender,
+                    days: keptDays,
+                    weekStart: weekStart,
+                    weekNumber: mine.weekNumber,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Local copy on this device
+                let local = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                local = local.filter(r => !sameName(r));
+                local.push(record);
+                localStorage.setItem('weeklyAvailability', JSON.stringify(local));
+
+                // Shared sheet (confirmed)
+                if (googleSheetsApiUrl) {
+                    try {
+                        await SeahawkSync.post({ ...record, action: 'upsert' });
+                    } catch (e) {
+                        console.error('Withdraw failed:', e);
+                        alert('⚠️ Could not update the shared sheet, so the coach still sees you on the list.\n\nPlease check your internet connection and try again.');
+                        return;
+                    }
+                }
+
+                // Clear the form and refresh the page state
+                ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'].forEach(day => {
+                    const cb = document.getElementById(day);
+                    if (cb) cb.checked = false;
+                });
+                updateSelection();
+                await checkExistingSubmission(name);
+                await updateAttendeeCounts();
+                alert("✅ Done. You've been removed from the rest of this week's training.");
+            } catch (e) {
+                console.error('Withdraw error:', e);
+                alert('⚠️ Something went wrong: ' + e.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
         async function submitAvailability() {
             try {
                 console.log('Submit button clicked');
@@ -1286,32 +1431,18 @@
  
             console.log('✅ Saved to localStorage (duplicates removed)');
  
-            // Save to Google Sheets (if configured)
+            // Save to the shared Google Sheet and confirm the server accepted it
             if (googleSheetsApiUrl) {
                 try {
-                    // Send with action to indicate this should replace any existing record
-                    const dataToSend = {
-                        ...availability,
-                        action: 'upsert' // Tell backend to update or insert
-                    };
- 
-                    const response = await fetch(googleSheetsApiUrl, {
-                        method: 'POST',
-                        mode: 'no-cors', // Google Apps Script requires this
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(dataToSend)
-                    });
- 
-                    console.log('✅ Submitted to Google Sheets');
- 
+                    await SeahawkSync.post({ ...availability, action: 'upsert' });
+                    console.log('✅ Saved to Google Sheets');
                 } catch (error) {
                     console.error('Error submitting to Google Sheets:', error);
-                    console.log('⚠️ Continuing with localStorage data');
+                    alert('⚠️ Your response could not be saved to the shared sheet, so the coach will not see it yet.\n\nPlease check your internet connection and press Submit again.');
+                    return;
                 }
             }
- 
+
             // Update attendee counts (wait for it to fetch latest data)
             await updateAttendeeCounts();
  

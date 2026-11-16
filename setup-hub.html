@@ -522,16 +522,17 @@
                     📥 Export All to Excel
                 </button>
                 <button class="btn btn-danger" onclick="clearAllResponses()">
-                    🗑️ Clear All Responses
+                    🧹 Clear This Device's Responses
                 </button>
                 <button class="btn btn-danger" onclick="clearAttendanceRecords()">
-                    🗑️ Clear Attendance Records
+                    🧹 Clear This Device's Attendance
                 </button>
             </div>
         </div>
     </div>
  
     <script src=https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js></script>
+    <script src="sync.js"></script>
     <script>
         let workbook = null;
         let excelFileName = '';
@@ -611,19 +612,35 @@
             }
         }
  
-        function updateResponseCount() {
-            const responses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
-            document.getElementById('totalResponses').textContent = `${responses.length} responses`;
- 
-            // Update attendance count
-            const attendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
+        // Latest data from the shared Google Sheet (falls back to this browser's copy)
+        async function getSharedData() {
+            try {
+                return await SeahawkSync.fetchAll();
+            } catch (e) {
+                console.warn('Using local data (sheet unavailable):', e);
+                return {
+                    availability: JSON.parse(localStorage.getItem('weeklyAvailability') || '[]'),
+                    attendance: JSON.parse(localStorage.getItem('actualAttendance') || '[]'),
+                    config: {},
+                    offline: true
+                };
+            }
+        }
+
+        async function updateResponseCount() {
+            const shared = await getSharedData();
+            const responses = shared.availability;
+            const note = shared.offline ? ' (this device only – sheet unreachable)' : '';
+            document.getElementById('totalResponses').textContent = `${responses.length} responses${note}`;
+
+            const attendance = shared.attendance;
             let totalAttendees = 0;
             attendance.forEach(record => {
                 totalAttendees += record.attended.length;
             });
-            document.getElementById('attendanceCount').textContent = `${totalAttendees} total attendances across ${attendance.length} training days`;
+            document.getElementById('attendanceCount').textContent = `${totalAttendees} total attendances across ${attendance.length} training days${note}`;
         }
- 
+
         function loadExcelFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -804,8 +821,8 @@
             });
         }
  
-        function exportAllData() {
-            const responses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+        async function exportAllData() {
+            const responses = (await getSharedData()).availability;
  
             if (responses.length === 0) {
                 alert('⚠️ No responses to export!');
@@ -859,10 +876,10 @@
         }
  
         function clearAllResponses() {
-            if (confirm('⚠️ Are you sure you want to clear ALL availability responses?\n\nThis cannot be undone!')) {
+            if (confirm('Clear the availability copy saved on THIS device?\n\nThe shared Google Sheet keeps all weeks as history and is not changed.')) {
                 localStorage.removeItem('weeklyAvailability');
                 updateResponseCount();
-                alert('✅ All responses cleared');
+                alert('✅ This device\'s copy cleared (sheet history kept)');
             }
         }
  
@@ -877,7 +894,7 @@
             if (confirm('⚠️ Are you sure you want to clear ALL attendance records?\n\nThis will delete all actual attendance data (not availability responses).\n\nThis cannot be undone!')) {
                 localStorage.removeItem('actualAttendance');
                 updateResponseCount();
-                alert('✅ All attendance records cleared');
+                alert('✅ This device\'s attendance copy cleared (sheet history kept)');
             }
         }
  
@@ -941,7 +958,7 @@
             document.getElementById('currentWeekStatus').innerHTML = statusHTML;
         }
  
-        function saveAlternateWeekConfig() {
+        async function saveAlternateWeekConfig() {
             const schedule = document.querySelector('input[name="wednesdaySchedule"]:checked').value;
             const pattern = document.querySelector('input[name="alternatePattern"]:checked')?.value || 'even';
  
@@ -952,6 +969,14 @@
             };
  
             localStorage.setItem('wednesdayAlternateConfig', JSON.stringify(config));
+
+            let shared = true;
+            try {
+                await SeahawkSync.post({ action: 'config', key: 'wednesdayAlternateConfig', value: config });
+            } catch (e) {
+                shared = false;
+                console.error('Could not save shared config:', e);
+            }
  
             const wednesdayActive = isWednesdayActive(config);
             const weekNum = getWeekNumber(new Date());
@@ -965,13 +990,28 @@
                 message += `🏃 Wednesday land training: ${pattern === 'even' ? 'Even' : 'Odd'} weeks\n`;
                 message += `📅 Week ${weekNum}: ${wednesdayActive ? '✅ Active' : '❌ Not active'}\n`;
             }
-            message += '\n✨ No GitHub upload needed!\n';
-            message += '📱 Members will see correct schedule automatically!';
+            if (shared) {
+                message += '\n📱 Saved to the shared sheet – all members will see it.';
+            } else {
+                message += '\n⚠️ NOT saved to the shared sheet (check internet / script URL). Only this device has the change.';
+            }
  
             alert(message);
         }
  
-        function loadAlternateWeekConfig() {
+        async function loadAlternateWeekConfig() {
+            // Pull the shared settings from the sheet so every admin device shows the same state
+            try {
+                const cfg = (await SeahawkSync.fetchAll()).config || {};
+                if (cfg.wednesdayAlternateConfig !== undefined) {
+                    localStorage.setItem('wednesdayAlternateConfig', JSON.stringify(cfg.wednesdayAlternateConfig));
+                }
+                if (cfg.manualCancellations !== undefined) {
+                    localStorage.setItem('manualCancellations', JSON.stringify(cfg.manualCancellations));
+                }
+            } catch (e) {
+                console.warn('Could not load shared config, using local copy:', e);
+            }
             const savedConfig = localStorage.getItem('wednesdayAlternateConfig');
  
             if (savedConfig) {
@@ -1090,7 +1130,7 @@
             // Just visual feedback, actual save happens on button click
         }
  
-        function saveManualOverrides() {
+        async function saveManualOverrides() {
             const overrides = {};
  
             // Check each checkbox
@@ -1114,6 +1154,13 @@
             }
  
             localStorage.setItem('manualCancellations', JSON.stringify(overrides));
+
+            try {
+                await SeahawkSync.post({ action: 'config', key: 'manualCancellations', value: overrides });
+            } catch (e) {
+                console.error('Could not save shared cancellations:', e);
+                alert('⚠️ Cancellations were NOT saved to the shared sheet (check internet / script URL). Members will not see them yet. Please press Save again.');
+            }
  
             updateActiveCancellationsDisplay(overrides);
  

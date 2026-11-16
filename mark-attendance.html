@@ -204,6 +204,7 @@
             <div class="btn-group">
                 <button class="btn btn-success" onclick="saveAttendance()">💾 Save Attendance</button>
                 <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh</button>
+                <span id="lastUpdated" style="margin-left: 12px; font-size: 13px; color: #666;"></span>
             </div>
         </div>
  
@@ -241,52 +242,95 @@
         </div>
     </div>
  
+    <script src="sync.js"></script>
     <script>
         let allResponses = [];
         let memberDatabase = [];
         let trainingDates = [];
         let selectedDate = '';
  
-        document.addEventListener('DOMContentLoaded', function() {
-            loadData();
-            populateTrainingDaySelector();
+        let sharedAttendance = [];
+        let rosterMap = {};
+        let dirty = false; // true when ticks have changed since the last load/save
+        const norm = v => String(v || '').trim().toLowerCase();
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadRoster();
+            await refreshData(true);
         });
- 
-        function loadData() {
-            // Load weekly availability responses
-            allResponses = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
- 
-            // Load member database from Excel
-            const savedData = localStorage.getItem('excelWorkbook');
-            if (savedData) {
-                try {
-                    const parsed = JSON.parse(savedData);
-                    memberDatabase = parsed.attendees || [];
-                } catch (e) {
-                    console.error('Error loading member database:', e);
+
+        // roster.json is the source of truth for category / side / gender
+        async function loadRoster() {
+            try {
+                const r = await fetch('roster.json', { cache: 'no-store' });
+                if (r.ok) {
+                    const d = await r.json();
+                    (d.members || []).forEach(m => { rosterMap[norm(m.name)] = m; });
                 }
+            } catch (e) {
+                console.warn('roster.json not loaded:', e);
             }
- 
-            // Extract all unique training dates
+        }
+
+        // Newest response per person per week, details filled from the roster
+        function cleanResponses(list) {
+            const latest = {};
+            list.forEach(r => {
+                if (!r.name || !Array.isArray(r.days)) return;
+                const key = norm(r.name) + '_' + r.weekStart;
+                if (!latest[key] || String(r.timestamp) > String(latest[key].timestamp)) latest[key] = r;
+            });
+            return Object.values(latest).map(r => {
+                const m = rosterMap[norm(r.name)];
+                return Object.assign({}, r, {
+                    category: (m && m.category) || r.category,
+                    paddlingSide: String((m && m.paddlingSide) || r.paddlingSide || '').trim(),
+                    gender: (m && m.gender) || r.gender
+                });
+            });
+        }
+
+        async function loadData() {
+            let list;
+            let note = '';
+            try {
+                const all = await SeahawkSync.fetchAll();
+                list = all.availability;
+                sharedAttendance = all.attendance;
+                if (all.roster && all.roster.length) {   // live Roster tab wins over roster.json
+                    rosterMap = {};
+                    all.roster.forEach(m => { rosterMap[norm(m.name)] = m; });
+                }
+            } catch (e) {
+                console.warn('Sheet unavailable, using this device only:', e);
+                list = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
+                sharedAttendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
+                note = ' (offline - this device only)';
+            }
+            allResponses = cleanResponses(list);
+
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 14);
+            cutoff.setHours(0, 0, 0, 0);
+
             const dateSet = new Map();
- 
             allResponses.forEach(response => {
                 response.days.forEach(day => {
+                    if (new Date(day.date) < cutoff) return;
                     if (!dateSet.has(day.date)) {
-                        dateSet.set(day.date, {
-                            date: day.date,
-                            name: day.name,
-                            display: day.display
-                        });
+                        dateSet.set(day.date, { date: day.date, name: day.name, display: day.display });
                     }
                 });
             });
- 
+
             trainingDates = Array.from(dateSet.values()).sort((a, b) =>
                 new Date(a.date) - new Date(b.date)
             );
+
+            document.getElementById('lastUpdated').textContent =
+                'Updated ' + new Date().toLocaleTimeString('en-SG') + note;
         }
- 
+
         function populateTrainingDaySelector() {
             const select = document.getElementById('trainingDaySelect');
  
@@ -336,7 +380,7 @@
             expectedMembers.sort((a, b) => a.name.localeCompare(b.name));
  
             // Load any previously saved attendance for this date
-            const savedAttendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
+            const savedAttendance = sharedAttendance;
             const todayAttendance = savedAttendance.find(a => a.date === selectedDate);
             const attendedNames = todayAttendance ? new Set(todayAttendance.attended) : new Set();
  
@@ -391,6 +435,7 @@
  
             updateStats();
  
+            dirty = false;
             document.getElementById('stats').style.display = 'grid';
             document.getElementById('attendanceSection').style.display = 'block';
             document.getElementById('emptyState').style.display = 'none';
@@ -424,6 +469,7 @@
         }
  
         function updateStats() {
+            dirty = true;
             const checkboxes = document.querySelectorAll('#attendanceList input[type="checkbox"]');
             const total = checkboxes.length;
             const attended = Array.from(checkboxes).filter(cb => cb.checked).length;
@@ -452,68 +498,74 @@
             document.getElementById('stats').innerHTML = statsHtml;
         }
  
-        function saveAttendance() {
+        async function saveAttendance() {
             if (!selectedDate) {
                 alert('⚠️ Please select a training date first!');
                 return;
             }
- 
+
             const checkboxes = document.querySelectorAll('#attendanceList input[type="checkbox"]');
             const attendedMembers = Array.from(checkboxes)
                 .filter(cb => cb.checked)
                 .map(cb => cb.value);
- 
+
             if (attendedMembers.length === 0) {
                 if (!confirm('⚠️ No one is marked as attended. Save anyway?')) {
                     return;
                 }
             }
- 
-            // Get member details for those who attended
+
             const attendedDetails = attendedMembers.map(name => {
-                const response = allResponses.find(r => r.name === name);
+                const response = allResponses.find(r => r.name === name) || {};
                 return {
                     name: name,
-                    category: response.category,
-                    paddlingSide: response.paddlingSide,
+                    category: response.category || '',
+                    paddlingSide: response.paddlingSide || '',
                     gender: response.gender || ''
                 };
             });
- 
-            // Load existing attendance records
-            let allAttendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
- 
-            // Remove any existing record for this date
-            allAttendance = allAttendance.filter(a => a.date !== selectedDate);
- 
-            // Add new record
+
             const dayInfo = trainingDates.find(d => d.date === selectedDate);
-            allAttendance.push({
+            const record = {
                 date: selectedDate,
                 dayName: dayInfo.name,
                 display: dayInfo.display,
                 attended: attendedMembers,
                 attendedDetails: attendedDetails,
                 timestamp: new Date().toISOString()
-            });
- 
-            // Save
-            localStorage.setItem('actualAttendance', JSON.stringify(allAttendance));
- 
-            alert(`✅ Attendance saved!\n\n📅 ${dayInfo.name}, ${dayInfo.display}\n👥 ${attendedMembers.length} members marked as attended`);
+            };
+
+            // Local backup on this device
+            let localAttendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
+            localAttendance = localAttendance.filter(a => a.date !== selectedDate);
+            localAttendance.push(record);
+            localStorage.setItem('actualAttendance', JSON.stringify(localAttendance));
+
+            // Save to the shared sheet and confirm
+            try {
+                const result = await SeahawkSync.post(Object.assign({ action: 'attendance' }, record));
+                sharedAttendance = result.attendance || sharedAttendance;
+                dirty = false;
+                alert(`✅ Attendance saved to the shared sheet!\n\n📅 ${dayInfo.name}, ${dayInfo.display}\n👥 ${attendedMembers.length} members marked as attended`);
+            } catch (e) {
+                console.error('Attendance save failed:', e);
+                alert('⚠️ NOT saved to the shared sheet (check internet / script URL).\n\nA copy is kept on this device only. Please press Save again when online.');
+            }
         }
- 
-        function refreshData() {
-            loadData();
-            const currentDate = document.getElementById('trainingDaySelect').value;
- 
-            // Repopulate selector
+
+        async function refreshData(initial) {
+            if (initial !== true && dirty && !confirm('You have unsaved changes. Refresh and discard them?')) {
+                return;
+            }
             const select = document.getElementById('trainingDaySelect');
+            const currentDate = select.value;
+
+            await loadData();
+
             select.innerHTML = '<option value="">-- Select today\'s training date --</option>';
             populateTrainingDaySelector();
- 
-            // Restore selection if still valid
-            if (currentDate) {
+
+            if (currentDate && trainingDates.some(d => d.date === currentDate)) {
                 select.value = currentDate;
                 loadExpectedMembers();
             }
