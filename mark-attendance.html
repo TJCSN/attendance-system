@@ -294,7 +294,7 @@
             let list;
             let note = '';
             try {
-                const all = await SeahawkSync.fetchAll();
+                const all = await SeahawkSync.fetchAll({ force: true });
                 list = all.availability;
                 sharedAttendance = all.attendance;
                 if (all.roster && all.roster.length) {   // live Roster tab wins over roster.json

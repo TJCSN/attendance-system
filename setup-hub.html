@@ -615,7 +615,7 @@
         // Latest data from the shared Google Sheet (falls back to this browser's copy)
         async function getSharedData() {
             try {
-                return await SeahawkSync.fetchAll();
+                return await SeahawkSync.fetchAll({ all: true, force: true });
             } catch (e) {
                 console.warn('Using local data (sheet unavailable):', e);
                 return {
@@ -1002,7 +1002,7 @@
         async function loadAlternateWeekConfig() {
             // Pull the shared settings from the sheet so every admin device shows the same state
             try {
-                const cfg = (await SeahawkSync.fetchAll()).config || {};
+                const cfg = (await SeahawkSync.fetchAll({ all: true })).config || {};
                 if (cfg.wednesdayAlternateConfig !== undefined) {
                     localStorage.setItem('wednesdayAlternateConfig', JSON.stringify(cfg.wednesdayAlternateConfig));
                 }

@@ -853,7 +853,7 @@
  
             if (googleSheetsApiUrl) {
                 try {
-                    const response = await fetch(googleSheetsApiUrl);
+                    const response = { ok: true, json: async () => ({ success: true, data: (await SeahawkSync.fetchAll()).availability }) };
                     if (response.ok) {
                         const result = await response.json();
                         if (result.success && result.data) {
@@ -1128,7 +1128,7 @@
  
                 if (googleSheetsApiUrl) {
                     try {
-                        const response = await fetch(googleSheetsApiUrl);
+                        const response = { ok: true, json: async () => ({ success: true, data: (await SeahawkSync.fetchAll()).availability }) };
                         if (response.ok) {
                             const result = await response.json();
                             if (result.success && result.data) {
@@ -1479,7 +1479,7 @@
  
             if (googleSheetsApiUrl) {
                 try {
-                    const response = await fetch(googleSheetsApiUrl);
+                    const response = { ok: true, json: async () => ({ success: true, data: (await SeahawkSync.fetchAll()).availability }) };
                     if (response.ok) {
                         const result = await response.json();
                         if (result.success && result.data) {

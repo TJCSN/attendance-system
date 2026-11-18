@@ -261,7 +261,6 @@
         </div>
     </div>
  
-    <script src=https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js></script>
     <script src="sync.js"></script>
     <script>
         let allAttendance = [];
@@ -275,7 +274,7 @@
             // Load attendance records from the shared sheet (falls back to this device)
             let note = '';
             try {
-                allAttendance = (await SeahawkSync.fetchAll()).attendance;
+                allAttendance = (await SeahawkSync.fetchAll({ force: true })).attendance;
             } catch (e) {
                 console.warn('Sheet unavailable, using this device only:', e);
                 allAttendance = JSON.parse(localStorage.getItem('actualAttendance') || '[]');
@@ -462,7 +461,8 @@
             loadData();
         }
  
-        function exportToExcel() {
+        async function exportToExcel() {
+            await SeahawkSync.loadXLSX();
             if (filteredData.length === 0) {
                 alert('⚠️ No data to export! Apply filters to see records.');
                 return;
