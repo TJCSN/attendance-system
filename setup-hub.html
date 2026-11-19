@@ -172,8 +172,10 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="theme.css">
+    <script src="nav.js" defer></script>
 </head>
-<body>
+<body class="sh sh-staff">
     <div class="container">
         <h1>🚣 Training Availability System</h1>
         <p class="subtitle">Admin Hub - Setup & Manage</p>
@@ -365,15 +367,6 @@
                             <input type="checkbox" id="cancelNextThursdayWater" onchange="updateManualOverrides()">
                             <div style="font-size: 14px;">
                                 <strong>Cancel NEXT Thursday Water</strong> <span style="color: #666;" id="nextThursdayDate"></span>
-                            </div>
-                        </label>
-                    </div>
- 
-                    <div style="margin-bottom: 8px;">
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; cursor: pointer;">
-                            <input type="checkbox" id="cancelNextThursdayLand" onchange="updateManualOverrides()">
-                            <div style="font-size: 14px;">
-                                <strong>Cancel NEXT Thursday Land</strong> <span style="color: #666;" id="nextThursdayDate2"></span>
                             </div>
                         </label>
                     </div>
@@ -760,7 +753,7 @@
                             location: "Near Blk 261 Jurong East St 24, S600261 (Basketball Court)"
                         },
                         thursday: {
-                            type: "Water (6pm - 7pm) & Land (7:15pm - 8:15pm)",
+                            type: "Water Training (6pm - 7pm)",
                             time: "Report at 5:45pm for water",
                             location: ""
                         },
@@ -779,7 +772,6 @@
                         tuesday: scheduleConfig.tuesday !== false,
                         wednesday: scheduleConfig.wednesday !== false,
                         thursdayWater: scheduleConfig.thursdayWater !== false,
-                        thursdayLand: scheduleConfig.thursdayLand !== false,
                         saturday: scheduleConfig.saturday !== false,
                         sunday: scheduleConfig.sunday !== false
                     }
@@ -1075,7 +1067,6 @@
             document.getElementById('nextTuesdayDate').textContent = `(${formatDate(nextTuesday)})`;
             document.getElementById('nextWednesdayDate').textContent = formatDate(nextWednesday);
             document.getElementById('nextThursdayDate').textContent = `(${formatDate(nextThursday)})`;
-            document.getElementById('nextThursdayDate2').textContent = `(${formatDate(nextThursday)})`;
             document.getElementById('nextSaturdayDate').textContent = `(${formatDate(nextSaturday)})`;
             document.getElementById('nextSundayDate').textContent = `(${formatDate(nextSunday)})`;
  
@@ -1108,9 +1099,6 @@
                     if (activeOverrides.thursdayWater === dateToString(nextThursday)) {
                         document.getElementById('cancelNextThursdayWater').checked = true;
                     }
-                    if (activeOverrides.thursdayLand === dateToString(nextThursday)) {
-                        document.getElementById('cancelNextThursdayLand').checked = true;
-                    }
                     if (activeOverrides.saturday === dateToString(nextSaturday)) {
                         document.getElementById('cancelNextSaturday').checked = true;
                     }
@@ -1142,9 +1130,6 @@
             }
             if (document.getElementById('cancelNextThursdayWater').checked) {
                 overrides.thursdayWater = dateToString(getNextDayOfWeek(4));
-            }
-            if (document.getElementById('cancelNextThursdayLand').checked) {
-                overrides.thursdayLand = dateToString(getNextDayOfWeek(4));
             }
             if (document.getElementById('cancelNextSaturday').checked) {
                 overrides.saturday = dateToString(getNextDayOfWeek(6));
@@ -1188,7 +1173,6 @@
                 tuesday: 'Tuesday',
                 wednesday: 'Wednesday Land',
                 thursdayWater: 'Thursday Water',
-                thursdayLand: 'Thursday Land',
                 saturday: 'Saturday',
                 sunday: 'Sunday'
             };

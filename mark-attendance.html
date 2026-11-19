@@ -193,8 +193,10 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="theme.css">
+    <script src="nav.js" defer></script>
 </head>
-<body>
+<body class="sh sh-staff">
     <div class="container">
         <div class="header">
             <div>
@@ -283,6 +285,7 @@
             return Object.values(latest).map(r => {
                 const m = rosterMap[norm(r.name)];
                 return Object.assign({}, r, {
+                    days: r.days.filter(d => norm(d.name) !== 'thursday - land'), // Thursday land training was removed
                     category: (m && m.category) || r.category,
                     paddlingSide: String((m && m.paddlingSide) || r.paddlingSide || '').trim(),
                     gender: (m && m.gender) || r.gender

@@ -1,0 +1,129 @@
+/* Seahawk shared theme. Loaded after each page's own styles; every rule is scoped to body.sh
+   so it wins without !important. Remove the <link> to theme.css to get the old look back. */
+:root{
+  --ink:#14283c; --muted:#56687a; --sea:#0f766e; --sea-dark:#0b5a54; --sea-tint:#e3f3f1;
+  --foam:#eef3f5; --card:#ffffff; --line:#d3dde4; --red:#b3261e; --warn:#fff4d6; --warn-line:#e8c55b;
+}
+body.sh{
+  display:block; padding:0 0 56px; min-height:100vh; background:var(--foam); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:17px; line-height:1.5;
+}
+body.sh.sh-coach{ font-size:18px; }               /* larger text kept for the coach view */
+
+/* ---------- page container ---------- */
+body.sh .container{
+  max-width:1040px; margin:20px auto; padding:28px; background:var(--card);
+  border:1px solid var(--line); border-radius:14px; box-shadow:none;
+}
+body.sh.sh-member .container{ max-width:640px; }
+body.sh h1{ font-size:1.55rem; line-height:1.25; margin:0 0 4px; color:var(--ink); }
+body.sh h2, body.sh h3{ color:var(--ink); }
+body.sh .subtitle{ color:var(--muted); margin:0 0 18px; }
+
+/* ---------- page header on staff pages ---------- */
+body.sh .header{
+  display:flex; flex-wrap:wrap; gap:14px 20px; align-items:flex-start; justify-content:space-between;
+  margin:0 0 22px; padding:0 0 18px; border:0; border-bottom:1px solid var(--line);
+  background:none; box-shadow:none;
+}
+body.sh .btn-group{ display:flex; flex-wrap:wrap; gap:10px; }
+
+/* ---------- buttons: filled = main action, outlined = secondary ---------- */
+body.sh .btn, body.sh .btn-submit{
+  min-height:46px; padding:10px 18px; border-radius:10px; font-size:1rem; font-weight:700;
+  border:2px solid transparent; cursor:pointer; box-shadow:none; transform:none;
+}
+body.sh .btn-success, body.sh .btn-submit{ background:var(--sea); color:#fff; border-color:var(--sea); }
+body.sh .btn-success:hover, body.sh .btn-submit:hover{ background:var(--sea-dark); border-color:var(--sea-dark); }
+body.sh .btn-primary{ background:#fff; color:var(--sea-dark); border-color:var(--sea); }
+body.sh .btn-primary:hover{ background:var(--sea-tint); }
+body.sh .btn-danger{ background:#fff; color:var(--red); border-color:var(--red); }
+body.sh .btn-danger:hover{ background:var(--red); color:#fff; }
+body.sh button:disabled{ opacity:.55; cursor:not-allowed; }
+
+/* ---------- form controls ---------- */
+body.sh select, body.sh input[type=text], body.sh input[type=date], body.sh input[type=url], body.sh input[type=number]{
+  min-height:46px; padding:8px 12px; font-size:16px; color:var(--ink); background:#fff;
+  border:2px solid var(--line); border-radius:10px;
+}
+body.sh select:focus, body.sh input:focus{ border-color:var(--sea); }
+body.sh :focus-visible{ outline:3px solid #2aa198; outline-offset:2px; }
+body.sh label{ font-weight:600; }
+body.sh .form-group{ margin-bottom:20px; }
+body.sh .date-selector{ margin-bottom:20px; }
+
+/* ---------- filter panel and summary numbers ---------- */
+body.sh .filter-section{ background:var(--foam); border:1px solid var(--line); border-radius:12px; padding:16px; margin:0 0 20px; }
+body.sh .stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin:0 0 22px; }
+body.sh .stat-card{ background:var(--sea-tint); border:1px solid #bfe0db; border-radius:12px; padding:14px; text-align:center; box-shadow:none; }
+body.sh .stat-number{ font-size:1.9rem; font-weight:800; line-height:1.1; color:var(--sea-dark); }
+body.sh .stat-label{ font-size:.9rem; color:var(--muted); }
+
+/* ---------- lists, tables, notices ---------- */
+body.sh .checkbox-item, body.sh .paddler-row{ border:1px solid var(--line); border-radius:10px; background:#fff; }
+body.sh .position-number{ background:var(--sea); color:#fff; }
+body.sh .report-table{ width:100%; border-collapse:collapse; }
+body.sh .report-table th{ background:var(--ink); color:#fff; text-align:left; padding:12px; }
+body.sh .report-table td{ padding:12px; border-bottom:1px solid var(--line); }
+body.sh .report-table tr:nth-child(even) td{ background:#f7fafb; }
+body.sh .empty-state{ color:var(--muted); text-align:center; padding:40px 16px; }
+body.sh .info-box{ background:var(--sea-tint); border:1px solid #bfe0db; border-left:5px solid var(--sea); border-radius:10px; color:var(--ink); }
+body.sh .week-badge{ display:inline-block; background:var(--ink); color:#fff; border-radius:999px; padding:6px 16px; font-weight:600; }
+body.sh .section{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; margin:0 0 18px; box-shadow:none; }
+body.sh .workflow{ background:var(--foam); border:1px solid var(--line); border-radius:12px; padding:16px 20px; }
+
+/* ---------- member form: bigger day cards, submit stays reachable ---------- */
+body.sh .day-checkbox{ min-height:64px; padding:14px 16px; background:#fff; border:2px solid var(--line); border-radius:12px; }
+body.sh .day-checkbox:has(input:checked){ border-color:var(--sea); background:var(--sea-tint); }
+body.sh .day-checkbox input[type=checkbox]{ width:24px; height:24px; accent-color:var(--sea); }
+body.sh .day-name{ font-weight:700; }
+body.sh .attendee-count{ color:var(--muted); }
+body.sh.sh-member .btn-submit{ width:100%; min-height:54px; font-size:1.1rem; position:sticky; bottom:12px; box-shadow:0 6px 18px rgba(20,40,60,.25); }
+
+/* ---------- navigation bar (staff pages) ---------- */
+.sh-nav{
+  position:sticky; top:0; z-index:50; display:flex; align-items:stretch; gap:2px; padding:0 12px;
+  background:#14283c; color:#fff; overflow-x:auto; white-space:nowrap;
+  font:600 15px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+}
+.sh-nav .brand{ display:flex; align-items:center; padding:0 14px 0 4px; margin-right:6px; font-weight:800; font-size:16px; }
+.sh-nav a{ display:inline-flex; align-items:center; min-height:48px; padding:0 14px; color:#c7d5e0; text-decoration:none; border-bottom:3px solid transparent; }
+.sh-nav a:hover{ color:#fff; }
+.sh-nav a[aria-current=page]{ color:#fff; border-bottom-color:#5fd0c5; }
+.sh-nav a:focus-visible{ outline:3px solid #5fd0c5; outline-offset:-3px; }
+.sh-nav .spacer{ flex:1; min-width:12px; }
+
+/* ---------- phones ---------- */
+@media (max-width:640px){
+  body.sh .container{ margin:0; padding:18px 14px; border-radius:0; border-left:0; border-right:0; }
+  body.sh .header{ flex-direction:column; gap:12px; }
+  body.sh .btn-group{ width:100%; }
+  body.sh .btn-group .btn{ flex:1 1 140px; }
+  body.sh h1{ font-size:1.35rem; }
+}
+@media (prefers-reduced-motion:reduce){ body.sh *{ transition:none !important; animation:none !important; } }
+
+/* ---------- coach view: left and right always side by side ---------- */
+body.sh .boat-container{ background:var(--foam); border:1px solid var(--line); border-radius:12px; padding:20px; }
+body.sh .boat-layout{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; }   /* overrides the old "stack on tablets/phones" rule */
+body.sh .side-section{ min-width:0; padding:14px; border:1px solid var(--line); border-radius:12px; }
+body.sh .side-header{ background:var(--ink); color:#fff; padding:12px 8px; border-radius:10px; margin-bottom:14px; font-size:1.1rem; }
+body.sh .boat-layout > .side-section:nth-child(1) .side-header{ background:var(--sea); }   /* left = teal, right = navy */
+body.sh .paddler-row{ padding:12px; gap:12px; margin-bottom:10px; border-left:6px solid var(--sea); transition:none; }
+body.sh .boat-layout > .side-section:nth-child(2) .paddler-row{ border-left-color:var(--ink); }
+body.sh .paddler-row:hover{ background:#fff; transform:none; }
+body.sh .position-number{ flex:none; width:44px; height:44px; font-size:18px; }
+body.sh .paddler-info{ min-width:0; }
+body.sh .paddler-name{ overflow-wrap:anywhere; }
+@media (max-width:640px){
+  body.sh.sh-coach .container{ padding:14px 8px; }
+  body.sh .boat-container{ padding:8px; }
+  body.sh .boat-layout{ gap:8px; }
+  body.sh .side-section{ padding:8px; }
+  body.sh .side-header{ font-size:.95rem; padding:10px 4px; margin-bottom:10px; }
+  body.sh .paddler-row{ padding:8px; gap:8px; margin-bottom:8px; }
+  body.sh .position-number{ width:30px; height:30px; font-size:14px; }
+  body.sh .paddler-name{ font-size:15px; line-height:1.25; margin-bottom:4px; }
+  body.sh .paddler-details .badge{ font-size:11px; padding:2px 6px; }
+}

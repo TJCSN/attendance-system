@@ -725,7 +725,7 @@
       "location": "Near Blk 261 Jurong East St 24, S600261 (Basketball Court)"
     },
     "thursday": {
-      "type": "Water (6pm - 7pm) & Land (7:15pm - 8:15pm)",
+      "type": "Water Training (6pm - 7pm)",
       "time": "Report at 5:45pm for water",
       "location": ""
     },
@@ -744,7 +744,6 @@
     "tuesday": true,
     "wednesday": true,
     "thursdayWater": true,
-    "thursdayLand": true,
     "saturday": true,
     "sunday": true
   }

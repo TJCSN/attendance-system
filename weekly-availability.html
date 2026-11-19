@@ -383,8 +383,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="theme.css">
 </head>
-<body>
+<body class="sh sh-member">
     <div class="container">
         <h1>🏋️ This Week Training</h1>
         <div class="week-badge" id="weekBadge">
@@ -423,7 +424,7 @@
                 <input type="checkbox" id="tuesday" onchange="updateSelection()">
                 <label for="tuesday" class="day-info">
                     <div class="day-name">
-                        <span>Tuesday</span>
+                        <span>Tuesday - Water</span>
                         <span class="attendee-count" id="tuesdayCount">0 attending</span>
                     </div>
                     <div class="breakdown-details" id="tuesdayBreakdown"></div>
@@ -468,21 +469,6 @@
                 </label>
             </div>
  
-            <div class="day-checkbox" id="thursdayLandContainer" onclick="toggleDay(this, 'thursday_land')">
-                <input type="checkbox" id="thursday_land" onchange="updateSelection()">
-                <label for="thursday_land" class="day-info">
-                    <div class="day-name">
-                        <span>Thursday - Land</span>
-                        <span class="attendee-count" id="thursdayLandCount">0 attending</span>
-                    </div>
-                    <div class="breakdown-details" id="thursdayLandBreakdown"></div>
-                    <div class="day-date" id="thursdayLandDate"></div>
-                    <div class="training-details">
-                        <div class="training-type">🏃 Land Training (7:15pm - 8:15pm)</div>
-                    </div>
-                </label>
-            </div>
- 
             <div class="day-checkbox" id="saturdayContainer" onclick="toggleDay(this, 'saturday')">
                 <input type="checkbox" id="saturday" onchange="updateSelection()">
                 <label for="saturday" class="day-info">
@@ -510,7 +496,7 @@
                     <div class="day-date" id="sundayDate"></div>
                     <div class="training-details">
                         <div class="training-type">💧 Water Training</div>
-                        <div class="training-info">👕 Attire: Red Jersey</div>
+                        <div class="training-info"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-4px;margin-right:2px"><path fill="#d32f2f" d="M8 3 3 6l2 4 2-1v12h10V9l2 1 2-4-5-3c-.5 1.7-2 2.7-4 2.7S8.5 4.7 8 3z"/></svg> Attire: Red Jersey</div>
                     </div>
                 </label>
             </div>
@@ -747,13 +733,6 @@
                 console.log('❌ Thursday Water manually cancelled');
             }
  
-            // Thursday Land
-            if (manualCancellations.thursdayLand === nextThursday) {
-                document.getElementById('thursdayLandContainer').style.display = 'none';
-                cancelledSessions.push('Thursday Land');
-                console.log('❌ Thursday Land manually cancelled');
-            }
- 
             // Saturday
             if (manualCancellations.saturday === nextSaturday) {
                 document.getElementById('saturdayContainer').style.display = 'none';
@@ -914,7 +893,6 @@
                 tuesday: { total: 0, left: 0, right: 0, cox: 0 },
                 wednesday: { total: 0, left: 0, right: 0, cox: 0 },
                 'thursday - water': { total: 0, left: 0, right: 0, cox: 0 },
-                'thursday - land': { total: 0, left: 0, right: 0, cox: 0 },
                 saturday: { total: 0, left: 0, right: 0, cox: 0 },
                 sunday: { total: 0, left: 0, right: 0, cox: 0 }
             };
@@ -951,7 +929,6 @@
                 { key: 'tuesday', id: 'tuesday' },
                 { key: 'wednesday', id: 'wednesday' },
                 { key: 'thursday - water', id: 'thursdayWater' },
-                { key: 'thursday - land', id: 'thursdayLand' },
                 { key: 'saturday', id: 'saturday' },
                 { key: 'sunday', id: 'sunday' }
             ];
@@ -963,7 +940,7 @@
  
                 if (countElement) {
                     if (counts.total === 0) {
-                        countElement.textContent = 'Be first!';
+                        countElement.textContent = '0 attending';
                         countElement.classList.add('empty');
                     } else if (counts.total === 1) {
                         countElement.textContent = '1 attending';
@@ -1026,7 +1003,6 @@
                 tuesday: { offset: 1, id: 'tuesdayDate' },
                 wednesday: { offset: 2, id: 'wednesdayDate' },
                 thursday_water: { offset: 3, id: 'thursdayWaterDate' },
-                thursday_land: { offset: 3, id: 'thursdayLandDate' },
                 saturday: { offset: 5, id: 'saturdayDate' },
                 sunday: { offset: 6, id: 'sundayDate' }
             };
@@ -1060,7 +1036,6 @@
                 { id: 'tuesday', key: 'tuesday' },
                 { id: 'wednesday', key: 'wednesday' },
                 { id: 'thursday_water', key: 'thursday_water' },
-                { id: 'thursday_land', key: 'thursday_land' },
                 { id: 'saturday', key: 'saturday' },
                 { id: 'sunday', key: 'sunday' }
             ];
@@ -1191,7 +1166,6 @@
                             if (dayName === 'tuesday') checkboxId = 'tuesday';
                             else if (dayName === 'wednesday') checkboxId = 'wednesday';
                             else if (dayName === 'thursday - water') checkboxId = 'thursday_water';
-                            else if (dayName === 'thursday - land') checkboxId = 'thursday_land';
                             else if (dayName === 'saturday') checkboxId = 'saturday';
                             else if (dayName === 'sunday') checkboxId = 'sunday';
  
@@ -1222,7 +1196,7 @@
         }
  
         function updateSelection() {
-            const days = ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'];
+            const days = ['tuesday', 'wednesday', 'thursday_water', 'saturday', 'sunday'];
             days.forEach(day => {
                 const checkbox = document.getElementById(day);
                 if (checkbox) {
@@ -1308,7 +1282,7 @@
                 }
 
                 // Clear the form and refresh the page state
-                ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'].forEach(day => {
+                ['tuesday', 'wednesday', 'thursday_water', 'saturday', 'sunday'].forEach(day => {
                     const cb = document.getElementById(day);
                     if (cb) cb.checked = false;
                 });
@@ -1324,7 +1298,26 @@
             }
         }
 
+        let isSubmitting = false;
         async function submitAvailability() {
+            if (isSubmitting) return;                       // ignore repeat taps while saving
+            const btn = document.querySelector('.btn-submit');
+            const label = btn.innerHTML;
+            isSubmitting = true;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Submitting…';
+            const slowTimer = setTimeout(() => { btn.innerHTML = '⏳ Still saving… please wait'; }, 4000);
+            try {
+                await submitAvailabilityCore();
+            } finally {
+                clearTimeout(slowTimer);
+                isSubmitting = false;
+                btn.disabled = false;
+                btn.innerHTML = label;
+            }
+        }
+
+        async function submitAvailabilityCore() {
             try {
                 console.log('Submit button clicked');
  
@@ -1340,7 +1333,7 @@
                 console.log('Name selected:', name);
  
                 const selectedDays = [];
-                const days = ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'];
+                const days = ['tuesday', 'wednesday', 'thursday_water', 'saturday', 'sunday'];
  
                 days.forEach(day => {
                     const checkbox = document.getElementById(day);
@@ -1348,8 +1341,6 @@
                         let dayName;
                         if (day === 'thursday_water') {
                             dayName = 'Thursday - Water';
-                        } else if (day === 'thursday_land') {
-                            dayName = 'Thursday - Land';
                         } else {
                             dayName = day.charAt(0).toUpperCase() + day.slice(1);
                         }
@@ -1443,8 +1434,8 @@
                 }
             }
 
-            // Update attendee counts (wait for it to fetch latest data)
-            await updateAttendeeCounts();
+            // Refresh the attendee counts in the background so the confirmation shows straight away
+            updateAttendeeCounts().catch(e => console.warn('Count refresh failed:', e));
  
             // Show success message
             document.getElementById('successMessage').classList.add('show');
@@ -1454,7 +1445,7 @@
             setTimeout(() => {
                 select.value = '';
                 document.getElementById('memberInfo').classList.remove('show');
-                const allDays = ['tuesday', 'wednesday', 'thursday_water', 'thursday_land', 'saturday', 'sunday'];
+                const allDays = ['tuesday', 'wednesday', 'thursday_water', 'saturday', 'sunday'];
                 allDays.forEach(day => {
                     const checkbox = document.getElementById(day);
                     if (checkbox) checkbox.checked = false;
