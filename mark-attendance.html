@@ -232,6 +232,13 @@
             <p style="color: #856404; margin-bottom: 15px; font-size: 14px;">
                 ✓ Check the boxes for members who actually attended training
             </p>
+            <div class="walkin">
+                <label for="walkinSelect">➕ Someone who didn't sign up this week?</label>
+                <div class="walkin-row">
+                    <select id="walkinSelect"><option value="">-- Choose a member --</option></select>
+                    <button class="btn btn-primary" onclick="addWalkIn()">Add to list</button>
+                </div>
+            </div>
             <div id="attendanceList">
                 <!-- Checkboxes will be populated here -->
             </div>
@@ -357,93 +364,127 @@
             });
         }
  
+        let rowCounter = 0;
+
+        function memberDetails(name, fallback) {
+            const r = rosterMap[norm(name)] || fallback || {};
+            return { name: name, category: r.category || '', paddlingSide: r.paddlingSide || '', gender: r.gender || '' };
+        }
+
+        function addAttendanceRow(container, member, isWalkIn, checked, atTop) {
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+            if (checked) div.classList.add('checked');
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `member-${rowCounter++}`;
+            checkbox.value = member.name;
+            checkbox.checked = checked;
+            checkbox.dataset.walkin = isWalkIn ? '1' : '';
+            checkbox.onchange = function() {
+                updateCheckboxStyle(this);
+                updateStats();
+            };
+
+            const memberInfo = document.createElement('div');
+            memberInfo.className = 'member-info';
+            memberInfo.onclick = function() {
+                checkbox.checked = !checkbox.checked;
+                updateCheckboxStyle(checkbox);
+                updateStats();
+            };
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'member-name';
+            nameDiv.textContent = member.name;
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.className = 'member-details';
+            detailsDiv.innerHTML = `
+                <span class="badge ${isWalkIn ? 'badge-walkin' : 'badge-expected'}">${isWalkIn ? 'Walk-in' : 'Expected'}</span>
+                ${member.category || ''} | ${member.paddlingSide || 'Not specified'}
+            `;
+
+            memberInfo.appendChild(nameDiv);
+            memberInfo.appendChild(detailsDiv);
+            div.appendChild(checkbox);
+            div.appendChild(memberInfo);
+
+            if (atTop) container.insertBefore(div, container.firstChild);
+            else container.appendChild(div);
+        }
+
+        // Fill the "walk-in" dropdown with active members who are not on the list yet
+        function refreshWalkInOptions() {
+            const onList = new Set(Array.from(document.querySelectorAll('#attendanceList input[type="checkbox"]')).map(cb => norm(cb.value)));
+            const options = Object.values(rosterMap)
+                .filter(m => m.active !== false && !onList.has(norm(m.name)))
+                .sort((x, y) => x.name.localeCompare(y.name));
+            const select = document.getElementById('walkinSelect');
+            select.innerHTML = '<option value="">-- Choose a member --</option>' +
+                options.map(m => `<option value="${m.name.replace(/"/g, '&quot;')}">${m.name}</option>`).join('');
+        }
+
+        function addWalkIn() {
+            const select = document.getElementById('walkinSelect');
+            const name = select.value;
+            if (!name) {
+                alert('⚠️ Please choose a member first');
+                return;
+            }
+            addAttendanceRow(document.getElementById('attendanceList'), memberDetails(name), true, true, true);
+            updateStats();
+            refreshWalkInOptions();
+        }
+
         function loadExpectedMembers() {
             selectedDate = document.getElementById('trainingDaySelect').value;
- 
+
             if (!selectedDate) {
                 document.getElementById('stats').style.display = 'none';
                 document.getElementById('attendanceSection').style.display = 'none';
                 document.getElementById('emptyState').style.display = 'block';
                 return;
             }
- 
-            // Get members who said they'd come
+
+            // Members who said they'd come
             const expectedMembers = allResponses.filter(r =>
                 r.days.some(d => d.date === selectedDate)
             );
- 
-            if (expectedMembers.length === 0) {
-                document.getElementById('stats').style.display = 'none';
-                document.getElementById('attendanceSection').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
-                return;
-            }
- 
-            // Sort by name
             expectedMembers.sort((a, b) => a.name.localeCompare(b.name));
- 
-            // Load any previously saved attendance for this date
-            const savedAttendance = sharedAttendance;
-            const todayAttendance = savedAttendance.find(a => a.date === selectedDate);
-            const attendedNames = todayAttendance ? new Set(todayAttendance.attended) : new Set();
- 
-            // Display attendance list
+
+            // Previously saved attendance for this date
+            const todayAttendance = sharedAttendance.find(a => a.date === selectedDate);
+            const attendedNames = new Set(todayAttendance ? todayAttendance.attended : []);
+
             const container = document.getElementById('attendanceList');
             container.innerHTML = '';
- 
-            expectedMembers.forEach((member, index) => {
-                const div = document.createElement('div');
-                div.className = 'checkbox-item';
-                if (attendedNames.has(member.name)) {
-                    div.classList.add('checked');
-                }
- 
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = `member-${index}`;
-                checkbox.value = member.name;
-                checkbox.checked = attendedNames.has(member.name);
-                checkbox.onchange = function() {
-                    updateCheckboxStyle(this);
-                    updateStats();
-                };
- 
-                const memberInfo = document.createElement('div');
-                memberInfo.className = 'member-info';
-                memberInfo.onclick = function() {
-                    checkbox.checked = !checkbox.checked;
-                    updateCheckboxStyle(checkbox);
-                    updateStats();
-                };
- 
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'member-name';
-                nameDiv.textContent = member.name;
- 
-                const detailsDiv = document.createElement('div');
-                detailsDiv.className = 'member-details';
-                detailsDiv.innerHTML = `
-                    <span class="badge badge-expected">Expected</span>
-                    ${member.category} | ${member.paddlingSide || 'Not specified'}
-                `;
- 
-                memberInfo.appendChild(nameDiv);
-                memberInfo.appendChild(detailsDiv);
- 
-                div.appendChild(checkbox);
-                div.appendChild(memberInfo);
- 
-                container.appendChild(div);
+            rowCounter = 0;
+
+            expectedMembers.forEach(member => {
+                addAttendanceRow(container, member, false, attendedNames.has(member.name), false);
             });
- 
+
+            // Walk-ins saved earlier must stay on the list, otherwise saving again would drop them
+            const expectedNames = new Set(expectedMembers.map(m => norm(m.name)));
+            const savedDetails = todayAttendance ? (todayAttendance.attendedDetails || []) : [];
+            attendedNames.forEach(name => {
+                if (!expectedNames.has(norm(name))) {
+                    const saved = savedDetails.find(x => x.name === name);
+                    addAttendanceRow(container, memberDetails(name, saved), true, true, false);
+                }
+            });
+
+            refreshWalkInOptions();
             updateStats();
- 
+
             dirty = false;
             document.getElementById('stats').style.display = 'grid';
             document.getElementById('attendanceSection').style.display = 'block';
             document.getElementById('emptyState').style.display = 'none';
         }
- 
+
         function updateCheckboxStyle(checkbox) {
             const container = checkbox.closest('.checkbox-item');
             if (checkbox.checked) {
@@ -473,34 +514,23 @@
  
         function updateStats() {
             dirty = true;
-            const checkboxes = document.querySelectorAll('#attendanceList input[type="checkbox"]');
-            const total = checkboxes.length;
-            const attended = Array.from(checkboxes).filter(cb => cb.checked).length;
-            const absent = total - attended;
-            const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
- 
-            const statsHtml = `
-                <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                    <div class="stat-number">${attended}</div>
-                    <div class="stat-label">Attended</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
-                    <div class="stat-number">${absent}</div>
-                    <div class="stat-label">Absent</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <div class="stat-number">${total}</div>
-                    <div class="stat-label">Expected</div>
-                </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                    <div class="stat-number">${rate}%</div>
-                    <div class="stat-label">Attendance Rate</div>
-                </div>
+            const boxes = Array.from(document.querySelectorAll('#attendanceList input[type="checkbox"]'));
+            const expected = boxes.filter(cb => !cb.dataset.walkin);
+            const expectedPresent = expected.filter(cb => cb.checked).length;
+            const walkIns = boxes.filter(cb => cb.dataset.walkin && cb.checked).length;
+            const attended = expectedPresent + walkIns;
+            const absent = expected.length - expectedPresent;
+            const rate = expected.length > 0 ? Math.round((expectedPresent / expected.length) * 100) + '%' : '-';
+
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card"><div class="stat-number">${attended}</div><div class="stat-label">Attended</div></div>
+                <div class="stat-card"><div class="stat-number">${absent}</div><div class="stat-label">Absent</div></div>
+                <div class="stat-card"><div class="stat-number">${expected.length}</div><div class="stat-label">Expected</div></div>
+                <div class="stat-card"><div class="stat-number">${walkIns}</div><div class="stat-label">Walk-ins</div></div>
+                <div class="stat-card"><div class="stat-number">${rate}</div><div class="stat-label">Of expected came</div></div>
             `;
- 
-            document.getElementById('stats').innerHTML = statsHtml;
         }
- 
+
         async function saveAttendance() {
             if (!selectedDate) {
                 alert('⚠️ Please select a training date first!');
@@ -519,7 +549,7 @@
             }
 
             const attendedDetails = attendedMembers.map(name => {
-                const response = allResponses.find(r => r.name === name) || {};
+                const response = allResponses.find(r => r.name === name) || rosterMap[norm(name)] || {};
                 return {
                     name: name,
                     category: response.category || '',
