@@ -831,7 +831,30 @@
         }
  
  
-        // Names of everyone signed up this week, grouped by day. The next training day opens by default.
+        // Paddling side from the roster (preferred) or from the response itself, lower-cased
+        function memberSide(name, fallback) {
+            const key = String(name || '').trim().toLowerCase();
+            const m = allMembers.find(x => x.name && x.name.trim().toLowerCase() === key);
+            return String((m && m.paddlingSide) || fallback || '').trim().toLowerCase();
+        }
+
+        function sideColumn(cls, title, people) {
+            const col = document.createElement('div');
+            col.className = 'side ' + cls;
+            const head = document.createElement('h3');
+            head.textContent = title;
+            col.appendChild(head);
+            people.forEach(p => {
+                const nm = document.createElement('div');
+                nm.className = 'nm';
+                nm.textContent = p.name;   // textContent, so names can never inject HTML
+                col.appendChild(nm);
+            });
+            return col;
+        }
+
+        // Everyone signed up this week, grouped by day, with Left and Right side by side.
+        // The next training day opens by default.
         function renderWhoComing(dayRoster, weekRange) {
             const box = document.getElementById('whoList');
             if (!box) return;
@@ -857,7 +880,7 @@
                     const left = document.createElement('span');
                     left.textContent = title;
                     const right = document.createElement('span');
-                    right.textContent = '0 attending';
+                    right.textContent = 'No one yet';
                     row.appendChild(left);
                     row.appendChild(right);
                     box.appendChild(row);
@@ -869,22 +892,23 @@
                 const summary = document.createElement('summary');
                 const label = document.createElement('span');
                 label.textContent = title + (list[0].display ? ' · ' + list[0].display : '');
-                const count = document.createElement('span');
-                count.className = 'n';
-                count.textContent = list.length + ' attending';
                 summary.appendChild(label);
-                summary.appendChild(count);
                 details.appendChild(summary);
 
-                const names = document.createElement('div');
-                names.className = 'names';
-                list.forEach(p => {
-                    const chip = document.createElement('span');
-                    chip.className = 'chip';
-                    chip.textContent = p.name;   // textContent, so names can never inject HTML
-                    names.appendChild(chip);
-                });
-                details.appendChild(names);
+                const leftSide = list.filter(p => p.side.includes('left'));
+                const rightSide = list.filter(p => p.side.includes('right'));
+                const other = list.filter(p => !p.side.includes('left') && !p.side.includes('right'));
+
+                const sides = document.createElement('div');
+                sides.className = 'sides';
+                sides.appendChild(sideColumn('left', 'Left', leftSide));
+                sides.appendChild(sideColumn('right', 'Right', rightSide));
+                if (other.length) {
+                    const o = sideColumn('other', 'Side not specified', other);
+                    o.className += ' unspec';
+                    sides.appendChild(o);
+                }
+                details.appendChild(sides);
                 box.appendChild(details);
             });
         }
@@ -977,7 +1001,7 @@
                         const dayName = day.name.toLowerCase();
                         if (dayCounts.hasOwnProperty(dayName)) {
                             dayCounts[dayName].total++;
-                            dayRoster[dayName].push({ name: response.name, date: day.date, display: day.display });
+                            dayRoster[dayName].push({ name: response.name, date: day.date, display: day.display, side: memberSide(response.name, response.paddlingSide) });
  
                             // Check paddling side or category for role
                             const paddlingSide = String(response.paddlingSide || '').toLowerCase();

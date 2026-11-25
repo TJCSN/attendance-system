@@ -137,17 +137,22 @@ body.sh .badge-walkin{ background:#ffedc2; color:#7a4a00; }
 body.sh .badge-coach{ background:#ffedc2; color:#7a4a00; }
 body.sh .btn-remove-added{ min-height:32px; padding:2px 10px; border:1.5px solid var(--red); background:#fff; color:var(--red); border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; }
 
-/* ---------- member form: who's coming this week ---------- */
+/* ---------- member form: who's coming this week (Left | Right) ---------- */
 body.sh .who{ margin:0 0 22px; border:1px solid var(--line); border-radius:12px; background:#fff; overflow:hidden; }
 body.sh .who-title{ margin:0; padding:12px 16px; background:var(--foam); border-bottom:1px solid var(--line); font-size:1.05rem; font-weight:800; }
 body.sh .who details{ border-bottom:1px solid var(--line); }
 body.sh .who details:last-child{ border-bottom:0; }
 body.sh .who summary{ display:flex; justify-content:space-between; align-items:center; gap:12px; min-height:48px; padding:10px 16px; font-weight:700; cursor:pointer; list-style:none; }
 body.sh .who summary::-webkit-details-marker{ display:none; }
-body.sh .who summary::after{ content:'▾'; color:var(--muted); margin-left:8px; }
+body.sh .who summary::after{ content:'▾'; color:var(--muted); margin-left:auto; }
 body.sh .who details[open] summary::after{ content:'▴'; }
-body.sh .who summary .n{ margin-left:auto; color:var(--sea-dark); font-weight:800; }
-body.sh .who .names{ display:flex; flex-wrap:wrap; gap:6px; padding:0 16px 14px; }
-body.sh .who .chip{ background:var(--sea-tint); border:1px solid #bfe0db; border-radius:999px; padding:3px 11px; font-size:.92rem; }
+body.sh .who .sides{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; padding:0 12px 14px; }
+body.sh .who .side{ min-width:0; }
+body.sh .who .side h3{ margin:0 0 6px; padding:6px 10px; border-radius:8px; color:#fff; font-size:.9rem; text-align:center; }
+body.sh .who .side.left h3{ background:var(--sea); }
+body.sh .who .side.right h3{ background:var(--ink); }
+body.sh .who .side.other h3{ background:var(--muted); }
+body.sh .who .side .nm{ padding:7px 8px; border-bottom:1px solid var(--line); font-size:.95rem; overflow-wrap:anywhere; }
+body.sh .who .unspec{ grid-column:1 / -1; }
 body.sh .who .row-empty{ display:flex; justify-content:space-between; gap:12px; padding:12px 16px; color:var(--muted); border-bottom:1px solid var(--line); }
 body.sh .who .row-empty:last-child{ border-bottom:0; }
