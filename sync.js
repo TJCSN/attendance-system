@@ -91,5 +91,67 @@
     return xlsxPromise;
   }
 
-  window.SeahawkSync = { getUrl: getUrl, fetchAll: fetchAll, post: post, poll: poll, loadXLSX: loadXLSX };
+  // ---- Adding / removing a member on one training day on their behalf (coach + attendance pages) ----
+  // The day is saved as a normal sign-up flagged addedByCoach, so every page shows it.
+
+  // The Tuesday date the member form saves as "weekStart" (calculated exactly like the form does)
+  function currentWeekStart() {
+    var today = new Date();
+    var cd = today.getDay();
+    var thisMonday = new Date(today);
+    thisMonday.setDate(today.getDate() + (cd === 0 ? -6 : -(cd - 1)));
+    var tue = new Date(thisMonday);
+    tue.setDate(thisMonday.getDate() + 1);
+    return tue.toISOString().split('T')[0];
+  }
+
+  function isoWeekNumber(date) {
+    var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    var dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  }
+
+  // This week's sign-up for a member from a list of responses (or undefined)
+  function findThisWeek(list, name) {
+    var ws = currentWeekStart();
+    var n = String(name || '').trim().toLowerCase();
+    return (list || []).find(function (r) {
+      return String(r.name || '').trim().toLowerCase() === n && String(r.weekStart) === ws;
+    });
+  }
+
+  function saveMemberDays(person, existing, days) {
+    var weekStart = currentWeekStart();
+    return post({
+      action: 'upsert',
+      name: person.name,
+      category: person.category || '',
+      paddlingSide: person.paddlingSide || '',
+      gender: person.gender || '',
+      days: days,
+      weekStart: weekStart,
+      weekNumber: existing && existing.weekNumber ? existing.weekNumber : isoWeekNumber(new Date(weekStart))
+    });
+  }
+
+  // person: {name, category, paddlingSide, gender}; existing: their sign-up this week (or undefined);
+  // dayInfo: {date, name, display}. Keeps any days they already signed up for.
+  function addCoachDay(person, existing, dayInfo) {
+    var days = (existing ? existing.days : []).filter(function (d) { return d.date !== dayInfo.date; });
+    days.push({ date: dayInfo.date, name: dayInfo.name, display: dayInfo.display, addedByCoach: true });
+    return saveMemberDays(person, existing, days);
+  }
+
+  // Removes only a day that the coach added; days the member signed up for themselves are kept.
+  function removeCoachDay(person, existing, date) {
+    var days = (existing ? existing.days : []).filter(function (d) { return !(d.date === date && d.addedByCoach); });
+    return saveMemberDays(person, existing, days);
+  }
+
+  window.SeahawkSync = {
+    getUrl: getUrl, fetchAll: fetchAll, post: post, poll: poll, loadXLSX: loadXLSX,
+    currentWeekStart: currentWeekStart, findThisWeek: findThisWeek, addCoachDay: addCoachDay, removeCoachDay: removeCoachDay
+  };
 })();

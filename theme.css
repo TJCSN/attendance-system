@@ -127,3 +127,12 @@ body.sh .paddler-name{ overflow-wrap:anywhere; }
   body.sh .paddler-name{ font-size:15px; line-height:1.25; margin-bottom:4px; }
   body.sh .paddler-details .badge{ font-size:11px; padding:2px 6px; }
 }
+
+/* ---------- mark attendance: walk-ins ---------- */
+body.sh .walkin{ background:var(--foam); border:1px solid var(--line); border-radius:12px; padding:14px; margin:0 0 16px; }
+body.sh .walkin label{ display:block; margin-bottom:8px; }
+body.sh .walkin-row{ display:flex; flex-wrap:wrap; gap:10px; }
+body.sh .walkin-row select{ flex:1 1 220px; }
+body.sh .badge-walkin{ background:#ffedc2; color:#7a4a00; }
+body.sh .badge-coach{ background:#ffedc2; color:#7a4a00; }
+body.sh .btn-remove-added{ min-height:32px; padding:2px 10px; border:1.5px solid var(--red); background:#fff; color:var(--red); border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; }
