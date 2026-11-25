@@ -357,6 +357,13 @@
                     </select>
                 </div>
             </div>
+            <div class="walkin" style="margin-top: 16px;">
+                <label for="addMemberSelect">➕ Add someone who didn't submit the form</label>
+                <div class="walkin-row">
+                    <select id="addMemberSelect"><option value="">-- Choose a member --</option></select>
+                    <button class="btn btn-success" id="addMemberBtn" onclick="addMemberToDay()">Add to this day</button>
+                </div>
+            </div>
         </div>
  
         <div class="stats" id="stats" style="display: none;">
@@ -452,14 +459,23 @@
             }
             allResponses = cleanResponses(list);
 
-            const cutoff = new Date();
-            cutoff.setDate(cutoff.getDate() - 7);
-            cutoff.setHours(0, 0, 0, 0);
+            // Only today and the rest of the CURRENT week (Monday-Sunday, same week as the member form).
+            // A training day disappears from this view once it has passed (from midnight).
+            const pad = n => String(n).padStart(2, '0');
+            const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+            const now = new Date();
+            const dow = now.getDay(); // 0 = Sunday
+            const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dow === 0 ? 6 : dow - 1));
+            const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+            const todayStr = ymd(now);
+            const weekEndStr = ymd(sunday);
+            const weekLabel = monday.toLocaleDateString('en-SG', { day: 'numeric', month: 'short' }) +
+                ' - ' + sunday.toLocaleDateString('en-SG', { day: 'numeric', month: 'short' });
 
             const dateSet = new Map();
             allResponses.forEach(response => {
                 response.days.forEach(day => {
-                    if (new Date(day.date) < cutoff) return; // hide training days older than a week
+                    if (day.date < todayStr || day.date > weekEndStr) return; // already passed, or not this week
                     if (!dateSet.has(day.date)) {
                         dateSet.set(day.date, { date: day.date, name: day.name, display: day.display });
                     }
@@ -471,7 +487,7 @@
             );
 
             document.getElementById('lastUpdated').textContent =
-                'Updated ' + new Date().toLocaleTimeString('en-SG') + note;
+                'Week ' + weekLabel + ' · Updated ' + new Date().toLocaleTimeString('en-SG') + note;
         }
 
         function populateTrainingDaySelector() {
@@ -522,6 +538,7 @@
  
             // Sort by name
             allMembers.sort((a, b) => a.name.localeCompare(b.name));
+            refreshAddMemberOptions();
  
             // Reset filters
             document.getElementById('genderFilter').value = 'all';
@@ -663,6 +680,21 @@
  
             infoDiv.appendChild(nameDiv);
             infoDiv.appendChild(detailsDiv);
+
+            // Rows the coach added by hand get a tag and a remove button
+            const dayEntry = (member.days || []).find(d => d.date === document.getElementById('trainingDaySelect').value);
+            if (dayEntry && dayEntry.addedByCoach) {
+                const tagRow = document.createElement('div');
+                tagRow.style.marginTop = '6px';
+                tagRow.innerHTML = '<span class="badge badge-coach">Added by coach</span> ';
+                const rm = document.createElement('button');
+                rm.type = 'button';
+                rm.className = 'btn-remove-added';
+                rm.textContent = '✕ Remove';
+                rm.onclick = function () { removeAddedMember(member.name); };
+                tagRow.appendChild(rm);
+                infoDiv.appendChild(tagRow);
+            }
  
             row.appendChild(positionDiv);
             row.appendChild(infoDiv);
@@ -713,6 +745,62 @@
             document.getElementById('stats').style.display = 'grid';
         }
  
+        function findThisWeekResponse(name) {
+            return SeahawkSync.findThisWeek(allResponses, name);
+        }
+
+        // Active roster members who are not already on the selected day
+        function refreshAddMemberOptions() {
+            const onDay = new Set(allMembers.map(m => norm(m.name)));
+            const options = Object.values(rosterMap)
+                .filter(m => m.active !== false && !onDay.has(norm(m.name)))
+                .sort((a, b) => a.name.localeCompare(b.name));
+            document.getElementById('addMemberSelect').innerHTML =
+                '<option value="">-- Choose a member --</option>' +
+                options.map(m => `<option value="${m.name.replace(/"/g, '&quot;')}">${m.name}</option>`).join('');
+        }
+
+        async function addMemberToDay() {
+            const name = document.getElementById('addMemberSelect').value;
+            const date = document.getElementById('trainingDaySelect').value;
+            if (!name) {
+                alert('⚠️ Please choose a member first');
+                return;
+            }
+            const dayInfo = trainingDates.find(d => d.date === date);
+            if (!dayInfo) return;
+
+            const btn = document.getElementById('addMemberBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Adding…';
+            try {
+                const existing = findThisWeekResponse(name);
+                const person = rosterMap[norm(name)] || existing || { name: name };
+                await SeahawkSync.addCoachDay(person, existing, dayInfo);
+                await refreshData();
+            } catch (e) {
+                console.error('Add member failed:', e);
+                alert('⚠️ Could not add ' + name + ' (check internet connection). Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add to this day';
+            }
+        }
+
+        async function removeAddedMember(name) {
+            const date = document.getElementById('trainingDaySelect').value;
+            if (!confirm('Remove ' + name + ' from this day?')) return;
+            try {
+                const existing = findThisWeekResponse(name);
+                const person = rosterMap[norm(name)] || existing || { name: name };
+                await SeahawkSync.removeCoachDay(person, existing, date);
+                await refreshData();
+            } catch (e) {
+                console.error('Remove failed:', e);
+                alert('⚠️ Could not remove ' + name + ' (check internet connection). Please try again.');
+            }
+        }
+
         async function refreshData() {
             const select = document.getElementById('trainingDaySelect');
             const currentDate = select.value;
@@ -731,6 +819,8 @@
                 document.getElementById('genderFilter').value = gender;
                 document.getElementById('categoryFilter').value = category;
                 applyFilters();
+            } else {
+                loadMembers(); // selected day is no longer in view (new week) - clear the old lists
             }
         }
 

@@ -236,7 +236,7 @@
                 <label for="walkinSelect">➕ Someone who didn't sign up this week?</label>
                 <div class="walkin-row">
                     <select id="walkinSelect"><option value="">-- Choose a member --</option></select>
-                    <button class="btn btn-primary" onclick="addWalkIn()">Add to list</button>
+                    <button class="btn btn-primary" id="walkinBtn" onclick="addWalkIn()">Add to list</button>
                 </div>
             </div>
             <div id="attendanceList">
@@ -368,10 +368,11 @@
 
         function memberDetails(name, fallback) {
             const r = rosterMap[norm(name)] || fallback || {};
-            return { name: name, category: r.category || '', paddlingSide: r.paddlingSide || '', gender: r.gender || '' };
+            return { name: r.name || name, category: r.category || '', paddlingSide: r.paddlingSide || '', gender: r.gender || '' };
         }
 
-        function addAttendanceRow(container, member, isWalkIn, checked, atTop) {
+        // isWalkIn: shown with an orange tag and counted separately. removable: added by the coach, so it can be taken back out.
+        function addAttendanceRow(container, member, isWalkIn, checked, removable) {
             const div = document.createElement('div');
             div.className = 'checkbox-item';
             if (checked) div.classList.add('checked');
@@ -411,11 +412,19 @@
             div.appendChild(checkbox);
             div.appendChild(memberInfo);
 
-            if (atTop) container.insertBefore(div, container.firstChild);
-            else container.appendChild(div);
+            if (removable) {
+                const rm = document.createElement('button');
+                rm.type = 'button';
+                rm.className = 'btn-remove-added';
+                rm.textContent = '✕ Remove';
+                rm.onclick = function () { removeWalkIn(member.name); };
+                div.appendChild(rm);
+            }
+
+            container.appendChild(div);
         }
 
-        // Fill the "walk-in" dropdown with active members who are not on the list yet
+        // Fill the dropdown with active members who are not on the list yet
         function refreshWalkInOptions() {
             const onList = new Set(Array.from(document.querySelectorAll('#attendanceList input[type="checkbox"]')).map(cb => norm(cb.value)));
             const options = Object.values(rosterMap)
@@ -426,19 +435,58 @@
                 options.map(m => `<option value="${m.name.replace(/"/g, '&quot;')}">${m.name}</option>`).join('');
         }
 
-        function addWalkIn() {
+        // Reload the list from the sheet but keep the ticks the coach has made so far
+        async function reloadKeepingTicks(name, added) {
+            const wasDirty = dirty;
+            const ticked = new Set(Array.from(document.querySelectorAll('#attendanceList input[type="checkbox"]'))
+                .filter(cb => cb.checked).map(cb => cb.value));
+            if (added) ticked.add(name); else ticked.delete(name);
+            await loadData();
+            loadExpectedMembers(ticked);
+            dirty = wasDirty || added;
+        }
+
+        // Saves the person as signed up for this day, so the coach view shows them too
+        async function addWalkIn() {
             const select = document.getElementById('walkinSelect');
             const name = select.value;
             if (!name) {
                 alert('⚠️ Please choose a member first');
                 return;
             }
-            addAttendanceRow(document.getElementById('attendanceList'), memberDetails(name), true, true, true);
-            updateStats();
-            refreshWalkInOptions();
+            const dayInfo = trainingDates.find(d => d.date === selectedDate);
+            if (!dayInfo) return;
+
+            const btn = document.getElementById('walkinBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Adding…';
+            try {
+                const existing = SeahawkSync.findThisWeek(allResponses, name);
+                await SeahawkSync.addCoachDay(memberDetails(name, existing), existing, dayInfo);
+                await reloadKeepingTicks(name, true);
+            } catch (e) {
+                console.error('Add walk-in failed:', e);
+                alert('⚠️ Could not add ' + name + ' (check internet connection). Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add to list';
+            }
         }
 
-        function loadExpectedMembers() {
+        async function removeWalkIn(name) {
+            if (!confirm('Remove ' + name + ' from this day?')) return;
+            try {
+                const existing = SeahawkSync.findThisWeek(allResponses, name);
+                await SeahawkSync.removeCoachDay(memberDetails(name, existing), existing, selectedDate);
+                await reloadKeepingTicks(name, false);
+            } catch (e) {
+                console.error('Remove walk-in failed:', e);
+                alert('⚠️ Could not remove ' + name + ' (check internet connection). Please try again.');
+            }
+        }
+
+        // overrideChecked (a Set of names) keeps unsaved ticks when the list is reloaded
+        function loadExpectedMembers(overrideChecked) {
             selectedDate = document.getElementById('trainingDaySelect').value;
 
             if (!selectedDate) {
@@ -448,25 +496,28 @@
                 return;
             }
 
-            // Members who said they'd come
+            // Everyone signed up for this day (including people the coach added)
             const expectedMembers = allResponses.filter(r =>
                 r.days.some(d => d.date === selectedDate)
             );
             expectedMembers.sort((a, b) => a.name.localeCompare(b.name));
 
-            // Previously saved attendance for this date
             const todayAttendance = sharedAttendance.find(a => a.date === selectedDate);
-            const attendedNames = new Set(todayAttendance ? todayAttendance.attended : []);
+            const attendedNames = (overrideChecked instanceof Set)
+                ? overrideChecked
+                : new Set(todayAttendance ? todayAttendance.attended : []);
 
             const container = document.getElementById('attendanceList');
             container.innerHTML = '';
             rowCounter = 0;
 
             expectedMembers.forEach(member => {
-                addAttendanceRow(container, member, false, attendedNames.has(member.name), false);
+                const dayEntry = member.days.find(d => d.date === selectedDate);
+                const coachAdded = !!(dayEntry && dayEntry.addedByCoach);
+                addAttendanceRow(container, member, coachAdded, attendedNames.has(member.name), coachAdded);
             });
 
-            // Walk-ins saved earlier must stay on the list, otherwise saving again would drop them
+            // Anyone saved as attended without a sign-up (older records) must stay on the list, or saving again would drop them
             const expectedNames = new Set(expectedMembers.map(m => norm(m.name)));
             const savedDetails = todayAttendance ? (todayAttendance.attendedDetails || []) : [];
             attendedNames.forEach(name => {
