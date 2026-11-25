@@ -396,6 +396,11 @@
         <div class="info-box">
             ℹ️ This form is for THIS WEEK's training only. Select which days you'll attend.
         </div>
+
+        <div class="who" id="whoComing">
+            <h2 class="who-title">👥 Who's coming this week</h2>
+            <div id="whoList"><div class="row-empty">Loading…</div></div>
+        </div>
  
         <div class="info-box" style="background: #fff3cd; border-color: #ffc107; display: none;" id="resubmitWarning">
             <span id="resubmitText">⚠️ <strong>Note:</strong> You have already submitted for this week. Submitting again will <strong>OVERWRITE</strong> your previous selection.</span>
@@ -826,6 +831,64 @@
         }
  
  
+        // Names of everyone signed up this week, grouped by day. The next training day opens by default.
+        function renderWhoComing(dayRoster, weekRange) {
+            const box = document.getElementById('whoList');
+            if (!box) return;
+            const order = [
+                ['tuesday', 'Tuesday - Water'],
+                ['wednesday', 'Wednesday'],
+                ['thursday - water', 'Thursday - Water'],
+                ['saturday', 'Saturday'],
+                ['sunday', 'Sunday']
+            ];
+            let openKey = null;
+            order.forEach(([key]) => {
+                const list = dayRoster[key] || [];
+                if (!openKey && list.length && list[0].date >= weekRange.today) openKey = key;
+            });
+
+            box.innerHTML = '';
+            order.forEach(([key, title]) => {
+                const list = (dayRoster[key] || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+                if (list.length === 0) {
+                    const row = document.createElement('div');
+                    row.className = 'row-empty';
+                    const left = document.createElement('span');
+                    left.textContent = title;
+                    const right = document.createElement('span');
+                    right.textContent = '0 attending';
+                    row.appendChild(left);
+                    row.appendChild(right);
+                    box.appendChild(row);
+                    return;
+                }
+                const details = document.createElement('details');
+                if (key === openKey) details.open = true;
+
+                const summary = document.createElement('summary');
+                const label = document.createElement('span');
+                label.textContent = title + (list[0].display ? ' · ' + list[0].display : '');
+                const count = document.createElement('span');
+                count.className = 'n';
+                count.textContent = list.length + ' attending';
+                summary.appendChild(label);
+                summary.appendChild(count);
+                details.appendChild(summary);
+
+                const names = document.createElement('div');
+                names.className = 'names';
+                list.forEach(p => {
+                    const chip = document.createElement('span');
+                    chip.className = 'chip';
+                    chip.textContent = p.name;   // textContent, so names can never inject HTML
+                    names.appendChild(chip);
+                });
+                details.appendChild(names);
+                box.appendChild(details);
+            });
+        }
+
         // True if a saved response belongs to the current Monday-Sunday week
         function inCurrentWeek(r) {
             const w = SeahawkSync.currentWeekRange();
@@ -903,6 +966,8 @@
                 saturday: { total: 0, left: 0, right: 0, cox: 0 },
                 sunday: { total: 0, left: 0, right: 0, cox: 0 }
             };
+            const dayRoster = {};
+            Object.keys(dayCounts).forEach(k => { dayRoster[k] = []; });
  
             // Count responses for this week's dates
             allResponses.forEach(response => {
@@ -912,6 +977,7 @@
                         const dayName = day.name.toLowerCase();
                         if (dayCounts.hasOwnProperty(dayName)) {
                             dayCounts[dayName].total++;
+                            dayRoster[dayName].push({ name: response.name, date: day.date, display: day.display });
  
                             // Check paddling side or category for role
                             const paddlingSide = String(response.paddlingSide || '').toLowerCase();
@@ -941,6 +1007,8 @@
                 { key: 'sunday', id: 'sunday' }
             ];
  
+            renderWhoComing(dayRoster, weekRange);
+
             dayMappings.forEach(mapping => {
                 const countElement = document.getElementById(mapping.id + 'Count');
                 const breakdownElement = document.getElementById(mapping.id + 'Breakdown');
