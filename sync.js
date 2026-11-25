@@ -91,6 +91,17 @@
     return xlsxPromise;
   }
 
+  // Monday-Sunday of the current week as local YYYY-MM-DD strings (the same week the member form uses)
+  function currentWeekRange() {
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+    var now = new Date();
+    var dow = now.getDay();
+    var mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dow === 0 ? 6 : dow - 1));
+    var sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+    return { start: ymd(mon), end: ymd(sun), today: ymd(now) };
+  }
+
   // ---- Adding / removing a member on one training day on their behalf (coach + attendance pages) ----
   // The day is saved as a normal sign-up flagged addedByCoach, so every page shows it.
 
@@ -152,6 +163,6 @@
 
   window.SeahawkSync = {
     getUrl: getUrl, fetchAll: fetchAll, post: post, poll: poll, loadXLSX: loadXLSX,
-    currentWeekStart: currentWeekStart, findThisWeek: findThisWeek, addCoachDay: addCoachDay, removeCoachDay: removeCoachDay
+    currentWeekStart: currentWeekStart, currentWeekRange: currentWeekRange, findThisWeek: findThisWeek, addCoachDay: addCoachDay, removeCoachDay: removeCoachDay
   };
 })();

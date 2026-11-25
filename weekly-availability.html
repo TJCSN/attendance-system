@@ -826,7 +826,14 @@
         }
  
  
+        // True if a saved response belongs to the current Monday-Sunday week
+        function inCurrentWeek(r) {
+            const w = SeahawkSync.currentWeekRange();
+            return r.weekStart >= w.start && r.weekStart <= w.end;
+        }
+
         async function updateAttendeeCounts() {
+            const weekRange = SeahawkSync.currentWeekRange();
             // Load all responses from Google Sheets (if configured) or localStorage
             let allResponses = [];
  
@@ -901,6 +908,7 @@
             allResponses.forEach(response => {
                 if (response.days && Array.isArray(response.days)) {
                     response.days.forEach(day => {
+                        if (day.date < weekRange.start || day.date > weekRange.end) return; // this week only
                         const dayName = day.name.toLowerCase();
                         if (dayCounts.hasOwnProperty(dayName)) {
                             dayCounts[dayName].total++;
@@ -1266,7 +1274,7 @@
 
                 // Local copy on this device
                 let local = JSON.parse(localStorage.getItem('weeklyAvailability') || '[]');
-                local = local.filter(r => !sameName(r));
+                local = local.filter(r => !sameName(r) && inCurrentWeek(r)); // keep this week only
                 local.push(record);
                 localStorage.setItem('weeklyAvailability', JSON.stringify(local));
 
@@ -1413,7 +1421,7 @@
                 const isDuplicate = r.name && name &&
                     r.name.toLowerCase().trim() === name.toLowerCase().trim() &&
                     r.weekStart === availability.weekStart;
-                return !isDuplicate; // Keep only non-duplicates
+                return !isDuplicate && inCurrentWeek(r); // keep only this week's, drop duplicates
             });
  
             // Add new submission
@@ -1463,6 +1471,7 @@
         }
  
         async function showMemberList(dayName, side, event) {
+            const weekRange = SeahawkSync.currentWeekRange();
             event.stopPropagation(); // Prevent day checkbox from toggling
  
             // Load all responses from Google Sheets or localStorage
@@ -1527,7 +1536,7 @@
             allResponses.forEach(response => {
                 if (response.days && Array.isArray(response.days)) {
                     response.days.forEach(day => {
-                        if (day.name.toLowerCase() === dayName.toLowerCase()) {
+                        if (day.name.toLowerCase() === dayName.toLowerCase() && day.date >= weekRange.start && day.date <= weekRange.end) {
                             // Check side
                             const paddlingSide = (response.paddlingSide || '').toLowerCase();
                             const category = (response.category || '').toLowerCase();

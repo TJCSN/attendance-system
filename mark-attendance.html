@@ -319,14 +319,15 @@
             }
             allResponses = cleanResponses(list);
 
-            const cutoff = new Date();
-            cutoff.setDate(cutoff.getDate() - 14);
-            cutoff.setHours(0, 0, 0, 0);
+            // Current week only (Monday-Sunday). Days earlier in the week stay available so late marking still works.
+            const range = SeahawkSync.currentWeekRange();
+            const fmt = s => new Date(s + 'T00:00:00').toLocaleDateString('en-SG', { day: 'numeric', month: 'short' });
+            const weekLabel = fmt(range.start) + ' - ' + fmt(range.end);
 
             const dateSet = new Map();
             allResponses.forEach(response => {
                 response.days.forEach(day => {
-                    if (new Date(day.date) < cutoff) return;
+                    if (day.date < range.start || day.date > range.end) return; // not this week
                     if (!dateSet.has(day.date)) {
                         dateSet.set(day.date, { date: day.date, name: day.name, display: day.display });
                     }
@@ -338,7 +339,7 @@
             );
 
             document.getElementById('lastUpdated').textContent =
-                'Updated ' + new Date().toLocaleTimeString('en-SG') + note;
+                'Week ' + weekLabel + ' · Updated ' + new Date().toLocaleTimeString('en-SG') + note;
         }
 
         function populateTrainingDaySelector() {
