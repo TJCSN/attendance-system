@@ -156,3 +156,5 @@ body.sh .who .side .nm{ padding:7px 8px; border-bottom:1px solid var(--line); fo
 body.sh .who .unspec{ grid-column:1 / -1; }
 body.sh .who .row-empty{ display:flex; justify-content:space-between; gap:12px; padding:12px 16px; color:var(--muted); border-bottom:1px solid var(--line); }
 body.sh .who .row-empty:last-child{ border-bottom:0; }
+body.sh .who .row-empty.cancelled{ color:var(--red); font-weight:700; }
+body.sh .who .row-empty.cancelled span:first-child{ text-decoration:line-through; }

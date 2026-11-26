@@ -430,7 +430,6 @@
                 <label for="tuesday" class="day-info">
                     <div class="day-name">
                         <span>Tuesday - Water</span>
-                        <span class="attendee-count" id="tuesdayCount">0 attending</span>
                     </div>
                     <div class="breakdown-details" id="tuesdayBreakdown"></div>
                     <div class="day-date" id="tuesdayDate"></div>
@@ -446,7 +445,6 @@
                 <label for="wednesday" class="day-info">
                     <div class="day-name">
                         <span>Wednesday</span>
-                        <span class="attendee-count" id="wednesdayCount">0 attending</span>
                     </div>
                     <div class="breakdown-details" id="wednesdayBreakdown"></div>
                     <div class="day-date" id="wednesdayDate"></div>
@@ -463,7 +461,6 @@
                 <label for="thursday_water" class="day-info">
                     <div class="day-name">
                         <span>Thursday - Water</span>
-                        <span class="attendee-count" id="thursdayWaterCount">0 attending</span>
                     </div>
                     <div class="breakdown-details" id="thursdayWaterBreakdown"></div>
                     <div class="day-date" id="thursdayWaterDate"></div>
@@ -479,7 +476,6 @@
                 <label for="saturday" class="day-info">
                     <div class="day-name">
                         <span>Saturday</span>
-                        <span class="attendee-count" id="saturdayCount">0 attending</span>
                     </div>
                     <div class="breakdown-details" id="saturdayBreakdown"></div>
                     <div class="day-date" id="saturdayDate"></div>
@@ -495,7 +491,6 @@
                 <label for="sunday" class="day-info">
                     <div class="day-name">
                         <span>Sunday</span>
-                        <span class="attendee-count" id="sundayCount">0 attending</span>
                     </div>
                     <div class="breakdown-details" id="sundayBreakdown"></div>
                     <div class="day-date" id="sundayDate"></div>
@@ -553,6 +548,8 @@
  
         let wednesdayConfig = null;
         let serverConfig = {}; // shared settings from the Google Sheet (Config tab)
+        let cancelledDays = {}; // day key -> text to show in "Who's coming" ('Cancelled' / 'No training this week')
+        let lastWho = null;     // last data shown in "Who's coming", so it can be redrawn when cancellations load
  
         function getWeekNumber(date) {
             // Get week number of the year (1-52/53)
@@ -677,6 +674,7 @@
         }
  
         function applyScheduleWithOverrides() {
+            cancelledDays = {};
             // Load manual cancellations
             let manualCancellations = {};
             const savedOverrides = serverConfig.manualCancellations !== undefined
@@ -712,6 +710,7 @@
             if (manualCancellations.tuesday === nextTuesday) {
                 document.getElementById('tuesdayContainer').style.display = 'none';
                 cancelledSessions.push('Tuesday');
+                cancelledDays['tuesday'] = 'Cancelled';
                 console.log('❌ Tuesday manually cancelled');
             }
  
@@ -721,9 +720,11 @@
                 document.getElementById('wednesdayContainer').style.display = 'none';
                 if (manualCancellations.wednesday === nextWednesday) {
                     cancelledSessions.push('Wednesday Land');
+                    cancelledDays['wednesday'] = 'Cancelled';
                     console.log('❌ Wednesday manually cancelled');
                 } else {
                     cancelledSessions.push('Wednesday Land (alternate week)');
+                    cancelledDays['wednesday'] = 'No training this week';
                     console.log('❌ Wednesday cancelled - alternate week');
                 }
             } else {
@@ -735,6 +736,7 @@
             if (manualCancellations.thursdayWater === nextThursday) {
                 document.getElementById('thursdayWaterContainer').style.display = 'none';
                 cancelledSessions.push('Thursday Water');
+                cancelledDays['thursday - water'] = 'Cancelled';
                 console.log('❌ Thursday Water manually cancelled');
             }
  
@@ -742,6 +744,7 @@
             if (manualCancellations.saturday === nextSaturday) {
                 document.getElementById('saturdayContainer').style.display = 'none';
                 cancelledSessions.push('Saturday');
+                cancelledDays['saturday'] = 'Cancelled';
                 console.log('❌ Saturday manually cancelled');
             }
  
@@ -749,6 +752,7 @@
             if (manualCancellations.sunday === nextSunday) {
                 document.getElementById('sundayContainer').style.display = 'none';
                 cancelledSessions.push('Sunday');
+                cancelledDays['sunday'] = 'Cancelled';
                 console.log('❌ Sunday manually cancelled');
             }
  
@@ -773,6 +777,9 @@
                     daysSection.insertBefore(banner, daysSection.firstChild);
                 }
             }
+
+            // Redraw "Who's coming" so cancelled days show as cancelled
+            if (lastWho) renderWhoComing(lastWho.dayRoster, lastWho.weekRange);
         }
  
         function populateDropdown() {
@@ -868,19 +875,19 @@
             let openKey = null;
             order.forEach(([key]) => {
                 const list = dayRoster[key] || [];
-                if (!openKey && list.length && list[0].date >= weekRange.today) openKey = key;
+                if (!openKey && !cancelledDays[key] && list.length && list[0].date >= weekRange.today) openKey = key;
             });
 
             box.innerHTML = '';
             order.forEach(([key, title]) => {
                 const list = (dayRoster[key] || []).slice().sort((a, b) => a.name.localeCompare(b.name));
-                if (list.length === 0) {
+                if (cancelledDays[key] || list.length === 0) {
                     const row = document.createElement('div');
-                    row.className = 'row-empty';
+                    row.className = cancelledDays[key] ? 'row-empty cancelled' : 'row-empty';
                     const left = document.createElement('span');
                     left.textContent = title;
                     const right = document.createElement('span');
-                    right.textContent = 'No one yet';
+                    right.textContent = cancelledDays[key] || 'No one yet';
                     row.appendChild(left);
                     row.appendChild(right);
                     box.appendChild(row);
@@ -1031,6 +1038,7 @@
                 { key: 'sunday', id: 'sunday' }
             ];
  
+            lastWho = { dayRoster, weekRange };
             renderWhoComing(dayRoster, weekRange);
 
             dayMappings.forEach(mapping => {
