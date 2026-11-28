@@ -391,15 +391,16 @@
         <div class="week-badge" id="weekBadge">
             <!-- Week dates will be shown here -->
         </div>
-        <p class="subtitle">Select your name and training days for this week</p>
- 
-        <div class="info-box">
-            ℹ️ This form is for THIS WEEK's training only. Select which days you'll attend.
-        </div>
 
         <div class="who" id="whoComing">
             <h2 class="who-title">👥 Who's coming this week</h2>
             <div id="whoList"><div class="row-empty">Loading…</div></div>
+        </div>
+
+        <p class="subtitle">Select your name and training days for this week</p>
+ 
+        <div class="info-box">
+            ℹ️ This form is for THIS WEEK's training only. Select which days you'll attend.
         </div>
  
         <div class="info-box" style="background: #fff3cd; border-color: #ffc107; display: none;" id="resubmitWarning">
@@ -413,7 +414,13 @@
         </div>
  
         <div class="form-group">
-            <label for="memberSelect">Your Name *</label>
+            <label for="memberSearch">Your Name *</label>
+            <div class="namepick">
+                <input type="text" id="memberSearch" hidden placeholder="🔍 Type to search your name…"
+                    autocomplete="off" autocapitalize="off" spellcheck="false"
+                    role="combobox" aria-expanded="false" aria-controls="nameSearchList" aria-autocomplete="list">
+                <ul id="nameSearchList" role="listbox" hidden></ul>
+            </div>
             <select id="memberSelect" onchange="showMemberInfo()" required>
                 <option value="">-- Select your name --</option>
             </select>
@@ -644,8 +651,17 @@
             return nextDate;
         }
  
+        // YYYY-MM-DD in the phone's LOCAL time. (toISOString() converts to UTC, which made every day
+        // one day early between midnight and 8am in Singapore, so the day looked "past" and was greyed out.)
         function dateToString(date) {
-            return date.toISOString().split('T')[0]; // YYYY-MM-DD
+            const pad = n => String(n).padStart(2, '0');
+            return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+        }
+
+        // Reads a YYYY-MM-DD string as a LOCAL date (new Date('YYYY-MM-DD') would read it as UTC)
+        function parseLocalDate(str) {
+            const [y, m, d] = String(str).split('-').map(Number);
+            return new Date(y, (m || 1) - 1, d || 1);
         }
  
         async function loadScheduleConfig() {
@@ -1041,41 +1057,25 @@
             lastWho = { dayRoster, weekRange };
             renderWhoComing(dayRoster, weekRange);
 
+            // Left / Right / Cox badges under each day. Tap one to see who is coming on that side.
             dayMappings.forEach(mapping => {
-                const countElement = document.getElementById(mapping.id + 'Count');
                 const breakdownElement = document.getElementById(mapping.id + 'Breakdown');
                 const counts = dayCounts[mapping.key];
- 
-                if (countElement) {
-                    if (counts.total === 0) {
-                        countElement.textContent = '0 attending';
-                        countElement.classList.add('empty');
-                    } else if (counts.total === 1) {
-                        countElement.textContent = '1 attending';
-                        countElement.classList.remove('empty');
-                    } else {
-                        countElement.textContent = counts.total + ' attending';
-                        countElement.classList.remove('empty');
+                if (!breakdownElement) return;
+                if (counts.total > 0) {
+                    let breakdownHTML = '';
+                    if (counts.left > 0) {
+                        breakdownHTML += `<span class="breakdown-badge left" onclick="showMemberList('${mapping.key}', 'left', event)">⬅️ ${counts.left} Left</span>`;
                     }
-                }
- 
-                // Update breakdown
-                if (breakdownElement) {
-                    if (counts.total > 0) {
-                        let breakdownHTML = '';
-                        if (counts.left > 0) {
-                            breakdownHTML += `<span class="breakdown-badge left" onclick="showMemberList('${mapping.key}', 'left', event)">⬅️ ${counts.left} Left</span>`;
-                        }
-                        if (counts.right > 0) {
-                            breakdownHTML += `<span class="breakdown-badge right" onclick="showMemberList('${mapping.key}', 'right', event)">${counts.right} Right ➡️</span>`;
-                        }
-                        if (counts.cox > 0) {
-                            breakdownHTML += `<span class="breakdown-badge cox" onclick="showMemberList('${mapping.key}', 'cox', event)">🎯 ${counts.cox} Cox</span>`;
-                        }
-                        breakdownElement.innerHTML = breakdownHTML;
-                    } else {
-                        breakdownElement.innerHTML = '';
+                    if (counts.right > 0) {
+                        breakdownHTML += `<span class="breakdown-badge right" onclick="showMemberList('${mapping.key}', 'right', event)">${counts.right} Right ➡️</span>`;
                     }
+                    if (counts.cox > 0) {
+                        breakdownHTML += `<span class="breakdown-badge cox" onclick="showMemberList('${mapping.key}', 'cox', event)">🎯 ${counts.cox} Cox</span>`;
+                    }
+                    breakdownElement.innerHTML = breakdownHTML;
+                } else {
+                    breakdownElement.innerHTML = '';
                 }
             });
         }
@@ -1129,7 +1129,7 @@
  
                 // Store full date for submission
                 nextWeekDates[dayName] = {
-                    date: date.toISOString().split('T')[0], // YYYY-MM-DD
+                    date: dateToString(date), // YYYY-MM-DD, local time
                     display: dateString
                 };
             }
@@ -1150,7 +1150,7 @@
  
             days.forEach(day => {
                 if (nextWeekDates[day.key]) {
-                    const dayDate = new Date(nextWeekDates[day.key].date);
+                    const dayDate = parseLocalDate(nextWeekDates[day.key].date);
                     dayDate.setHours(0, 0, 0, 0);
  
                     if (dayDate < today) {
@@ -1251,7 +1251,7 @@
                     const todayMidnight = new Date();
                     todayMidnight.setHours(0, 0, 0, 0);
                     const upcomingDays = (existingSubmission.days || []).filter(d => {
-                        const dd = new Date(d.date);
+                        const dd = parseLocalDate(d.date);
                         dd.setHours(0, 0, 0, 0);
                         return dd >= todayMidnight;
                     });
@@ -1355,7 +1355,7 @@
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const keptDays = (mine.days || []).filter(d => {
-                    const dd = new Date(d.date);
+                    const dd = parseLocalDate(d.date);
                     dd.setHours(0, 0, 0, 0);
                     return dd < today;
                 });
@@ -1480,7 +1480,7 @@
                 today.setHours(0, 0, 0, 0); // Start of today for fair comparison
  
                 const pastDays = selectedDays.filter(day => {
-                    const dayDate = new Date(day.date);
+                    const dayDate = parseLocalDate(day.date);
                     dayDate.setHours(0, 0, 0, 0);
                     return dayDate < today;
                 });
@@ -1498,7 +1498,7 @@
             const gender = selectedOption.dataset.gender;
  
             // Calculate week number
-            const weekNum = getWeekNumber(new Date(nextWeekDates.tuesday.date));
+            const weekNum = getWeekNumber(parseLocalDate(nextWeekDates.tuesday.date));
  
             // Store availability with week information
             const availability = {
@@ -1552,6 +1552,7 @@
             // Reset form after 3 seconds
             setTimeout(() => {
                 select.value = '';
+                if (window.clearNameSearch) clearNameSearch();
                 document.getElementById('memberInfo').classList.remove('show');
                 const allDays = ['tuesday', 'wednesday', 'thursday_water', 'saturday', 'sunday'];
                 allDays.forEach(day => {
@@ -1702,6 +1703,109 @@
                 document.getElementById('memberModal').classList.remove('show');
             }
         }
+
+        // ---------- searchable name picker ----------
+        // Shows a search box with a filtered list. Choosing a name sets the original <select id="memberSelect">
+        // and fires its change event, so everything else on the page works exactly as before.
+        // If anything here fails, the plain dropdown simply stays visible.
+        function initNameSearch() {
+            const input = document.getElementById('memberSearch');
+            const list = document.getElementById('nameSearchList');
+            const select = document.getElementById('memberSelect');
+            if (!input || !list || !select || !input.addEventListener) return;
+
+            let names = [];
+            let active = -1;
+            const norm = s => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
+
+            function readNames() {
+                names = Array.from(select.options).filter(o => o.value).map(o => o.value);
+            }
+            function matches(query) {
+                const q = norm(query);
+                if (!q) return names.slice();
+                const words = q.split(' ');
+                return names.filter(n => { const t = norm(n); return words.every(w => t.includes(w)); });
+            }
+            function openList() {
+                list.hidden = false;
+                input.setAttribute('aria-expanded', 'true');
+            }
+            function closeList() {
+                list.hidden = true;
+                input.setAttribute('aria-expanded', 'false');
+                active = -1;
+            }
+            function highlight(i) {
+                const items = Array.from(list.children).filter(li => li.dataset.name);
+                items.forEach((li, idx) => li.classList.toggle('active', idx === i));
+                active = i;
+                if (items[i] && items[i].scrollIntoView) items[i].scrollIntoView({ block: 'nearest' });
+            }
+            function choose(name) {
+                select.value = name;
+                input.value = name;
+                closeList();
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                if (input.blur) input.blur();
+            }
+            function render() {
+                readNames();
+                const found = matches(input.value);
+                list.innerHTML = '';
+                active = -1;
+                if (found.length === 0) {
+                    const li = document.createElement('li');
+                    li.className = 'none';
+                    li.textContent = names.length === 0 ? 'No member list loaded (contact admin)' : 'No name found - check the spelling';
+                    list.appendChild(li);
+                } else {
+                    found.forEach(n => {
+                        const li = document.createElement('li');
+                        li.setAttribute('role', 'option');
+                        li.dataset.name = n;
+                        li.textContent = n;   // textContent, so a name can never inject HTML
+                        li.addEventListener('mousedown', e => { e.preventDefault(); choose(n); });
+                        list.appendChild(li);
+                    });
+                }
+                openList();
+            }
+
+            input.addEventListener('focus', render);
+            input.addEventListener('input', () => {
+                // typing again after choosing a name means "pick someone else"
+                if (select.value && norm(input.value) !== norm(select.value)) {
+                    select.value = '';
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                render();
+            });
+            input.addEventListener('keydown', e => {
+                const items = Array.from(list.children).filter(li => li.dataset.name);
+                if (e.key === 'ArrowDown') { e.preventDefault(); if (list.hidden) render(); highlight(Math.min(active + 1, items.length - 1)); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(Math.max(active - 1, 0)); }
+                else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const pick = items[active] || (items.length === 1 ? items[0] : null);
+                    if (pick) choose(pick.dataset.name);
+                } else if (e.key === 'Escape') { closeList(); }
+            });
+            input.addEventListener('blur', closeList);
+
+            // The roster loads after the page opens; keep the list in step with the <select>
+            if (typeof MutationObserver !== 'undefined') {
+                new MutationObserver(() => { readNames(); if (!list.hidden) render(); }).observe(select, { childList: true });
+            }
+
+            window.clearNameSearch = function () { input.value = ''; closeList(); };
+
+            // success: swap the plain dropdown for the search box
+            input.hidden = false;
+            select.hidden = true;
+        }
+
+        try { initNameSearch(); } catch (e) { console.warn('Name search not started, using the plain dropdown:', e); }
     </script>
 </body>
 </html>

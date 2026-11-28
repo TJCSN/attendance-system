@@ -1052,7 +1052,9 @@
         }
  
         function dateToString(date) {
-            return date.toISOString().split('T')[0]; // YYYY-MM-DD
+            // local YYYY-MM-DD (not UTC), so it matches what the member form calculates
+            const pad = n => String(n).padStart(2, '0');
+            return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
         }
  
         function loadManualOverrides() {

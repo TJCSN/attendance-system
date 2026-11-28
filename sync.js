@@ -113,7 +113,7 @@
     thisMonday.setDate(today.getDate() + (cd === 0 ? -6 : -(cd - 1)));
     var tue = new Date(thisMonday);
     tue.setDate(thisMonday.getDate() + 1);
-    return tue.toISOString().split('T')[0];
+    return tue.getFullYear() + '-' + String(tue.getMonth() + 1).padStart(2, '0') + '-' + String(tue.getDate()).padStart(2, '0');
   }
 
   function isoWeekNumber(date) {
